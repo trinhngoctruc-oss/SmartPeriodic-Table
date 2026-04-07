@@ -30,6 +30,13 @@ export default function App() {
     const grid = [];
     // Main Table (Periods 1-7, Groups 1-18)
     for (let p = 1; p <= 7; p++) {
+      // Add Period Label at the start of each row
+      grid.push(
+        <div key={`period-label-${p}`} className="flex items-center justify-center text-[10px] font-bold text-slate-500 pr-2">
+          Chu kỳ {p}
+        </div>
+      );
+
       for (let g = 1; g <= 18; g++) {
         // Special cases for Lanthanides (57-71) and Actinides (89-103) placeholders in main table
         if (p === 6 && g === 3) {
@@ -79,12 +86,12 @@ export default function App() {
 
     return (
       <div className="mt-8 space-y-1">
-        <div className="flex gap-1 ml-[calc((100%/18)*3)]">
+        <div className="flex gap-1 ml-[calc((100%/19)*3)]">
           {lanthanides.map(element => (
             <motion.div
               key={element.number}
               onClick={() => handleElementClick(element)}
-              className={`relative flex flex-col items-center justify-center p-1 border border-slate-400 rounded-md cursor-pointer hover:scale-110 transition-transform shadow-md ${element.color} text-gray-900 w-[calc(100%/18-4px)] h-16`}
+              className={`relative flex flex-col items-center justify-center p-1 border border-slate-400 rounded-md cursor-pointer hover:scale-110 transition-transform shadow-md ${element.color} text-gray-900 w-[calc(100%/19-4px)] h-16`}
             >
               <span className="absolute top-0.5 left-1 text-[8px] sm:text-[10px] font-bold">{element.number}</span>
               <span className="text-sm sm:text-xl font-bold">{element.symbol}</span>
@@ -92,12 +99,12 @@ export default function App() {
             </motion.div>
           ))}
         </div>
-        <div className="flex gap-1 ml-[calc((100%/18)*3)]">
+        <div className="flex gap-1 ml-[calc((100%/19)*3)]">
           {actinides.map(element => (
             <motion.div
               key={element.number}
               onClick={() => handleElementClick(element)}
-              className={`relative flex flex-col items-center justify-center p-1 border border-slate-400 rounded-md cursor-pointer hover:scale-110 transition-transform shadow-md ${element.color} text-gray-900 w-[calc(100%/18-4px)] h-16`}
+              className={`relative flex flex-col items-center justify-center p-1 border border-slate-400 rounded-md cursor-pointer hover:scale-110 transition-transform shadow-md ${element.color} text-gray-900 w-[calc(100%/19-4px)] h-16`}
             >
               <span className="absolute top-0.5 left-1 text-[8px] sm:text-[10px] font-bold">{element.number}</span>
               <span className="text-sm sm:text-xl font-bold">{element.symbol}</span>
@@ -145,7 +152,10 @@ export default function App() {
 
         {/* Periodic Table Grid */}
         <div className="relative overflow-x-auto pb-8 scrollbar-hide">
-          <div className="grid grid-cols-[repeat(18,minmax(0,1fr))] gap-1 min-w-[1200px]">
+          <div className="grid grid-cols-[3rem_repeat(18,minmax(0,1fr))] gap-1 min-w-[1250px]">
+            {/* Empty corner for Period/Group labels intersection */}
+            <div className="w-12 h-8" />
+            
             {/* Group Numbers */}
             {Array.from({ length: 18 }).map((_, i) => (
               <div key={`group-${i + 1}`} className="text-center text-[10px] font-bold text-slate-500 pb-2">
@@ -158,17 +168,8 @@ export default function App() {
           </div>
 
           {/* Bottom Rows (Lanthanides & Actinides) */}
-          <div className="min-w-[1200px]">
+          <div className="min-w-[1250px]">
             {renderBottomRows()}
-          </div>
-          
-          {/* Period Numbers (Left side) */}
-          <div className="absolute top-6 -left-10 flex flex-col gap-1 h-full">
-            {Array.from({ length: 7 }).map((_, i) => (
-              <div key={`period-${i + 1}`} className="h-16 flex items-center justify-center text-[10px] font-bold text-slate-500">
-                Chu kỳ {i + 1}
-              </div>
-            ))}
           </div>
         </div>
 
@@ -244,7 +245,12 @@ export default function App() {
                   <div className="flex items-center justify-between mb-4">
                     <div>
                       <h2 className="text-3xl font-bold text-white mb-1">{selectedElement.name}</h2>
-                      <p className="text-blue-400 font-mono text-sm">{selectedElement.latinName} • {selectedElement.phonetic}</p>
+                      <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
+                        <p className="text-blue-400 font-mono text-sm">{selectedElement.latinName}</p>
+                        <p className="text-teal-400 font-mono text-sm bg-teal-400/10 px-2 py-0.5 rounded border border-teal-400/20">
+                          Phiên âm: {selectedElement.phonetic}
+                        </p>
+                      </div>
                     </div>
                     <button
                       onClick={() => speak(selectedElement)}
