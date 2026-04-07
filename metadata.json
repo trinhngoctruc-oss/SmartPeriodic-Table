@@ -1,5 +1,5 @@
 {
   "name": "Bảng Tuần Hoàn Hóa Học 7A3",
-  "description": "Ứng dụng bảng tuần hoàn các nguyên tố hóa học với hình ảnh, phiên âm và giọng đọc, thực hiện bởi Lớp 7a3-thcs Xuân Hòa.",
+  "description": "Ứng dụng bảng tuần hoàn các nguyên tố hóa học với hình ảnh, phiên âm và giọng đọc, thực hiện bởi Lớp 7a3-thcs Xuân Hòa. Hỗ trợ đa nền tảng (Web, Android, iOS).",
   "requestFramePermissions": []
 }

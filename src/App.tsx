@@ -184,6 +184,7 @@ export default function App() {
               <li>Nhấn vào nguyên tố để xem thông tin chi tiết.</li>
               <li>Nhấn nút "Nghe đọc" trong bảng thông tin để nghe miêu tả bằng tiếng Việt.</li>
               <li>Bảng bao gồm đầy đủ 118 nguyên tố hóa học.</li>
+              <li className="text-blue-300 font-medium">Hỗ trợ cài đặt trên Android và iOS.</li>
             </ul>
           </div>
           <div className="md:col-span-2 bg-gradient-to-br from-blue-600/20 to-teal-600/20 p-6 rounded-2xl border border-blue-500/20 flex items-center justify-center text-center">
