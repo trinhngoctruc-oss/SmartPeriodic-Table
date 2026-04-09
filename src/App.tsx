@@ -10,11 +10,20 @@ export default function App() {
   const speak = (element: Element) => {
     if ('speechSynthesis' in window) {
       window.speechSynthesis.cancel();
-      // Refined, concise introduction
       const text = `${element.name}`;
       const utterance = new SpeechSynthesisUtterance(text);
-      utterance.lang = 'vi-VN';
-      utterance.rate = 0.9; // Slightly slower for better clarity
+      
+      // Force English pronunciation
+      utterance.lang = 'en-US';
+      
+      // Try to find an English voice explicitly
+      const voices = window.speechSynthesis.getVoices();
+      const englishVoice = voices.find(v => v.lang.includes('en-US') || v.lang.includes('en-GB'));
+      if (englishVoice) {
+        utterance.voice = englishVoice;
+      }
+
+      utterance.rate = 0.9;
       utterance.pitch = 1.0;
       utterance.onstart = () => setIsSpeaking(true);
       utterance.onend = () => setIsSpeaking(false);
@@ -263,15 +272,13 @@ export default function App() {
                   </div>
                   
                   <div className="grid grid-cols-2 gap-4 mb-6">
-                    {selectedElement.discoverer !== "Đang cập nhật" && (
-                      <div className="bg-slate-800/50 p-3 rounded-xl border border-slate-700">
-                        <h4 className="text-[10px] font-bold text-slate-500 uppercase mb-1">Người tìm ra</h4>
-                        <p className="text-sm text-white">{selectedElement.discoverer}</p>
-                      </div>
-                    )}
                     <div className="bg-slate-800/50 p-3 rounded-xl border border-slate-700">
-                      <h4 className="text-[10px] font-bold text-slate-500 uppercase mb-1">Trạng thái</h4>
-                      <p className="text-sm text-white">{selectedElement.state}</p>
+                      <h4 className="text-[10px] font-bold text-slate-500 uppercase mb-1">Nhóm / Chu kỳ</h4>
+                      <p className="text-sm text-white">Nhóm {selectedElement.group} / Chu kỳ {selectedElement.period}</p>
+                    </div>
+                    <div className="bg-slate-800/50 p-3 rounded-xl border border-slate-700">
+                      <h4 className="text-[10px] font-bold text-slate-500 uppercase mb-1">Tính chất đặc trưng</h4>
+                      <p className="text-sm text-white">{selectedElement.characteristics}</p>
                     </div>
                     <div className="bg-slate-800/50 p-3 rounded-xl border border-slate-700">
                       <h4 className="text-[10px] font-bold text-slate-500 uppercase mb-1">Khối lượng</h4>
@@ -280,6 +287,31 @@ export default function App() {
                     <div className="bg-slate-800/50 p-3 rounded-xl border border-slate-700">
                       <h4 className="text-[10px] font-bold text-slate-500 uppercase mb-1">Phân loại</h4>
                       <p className="text-sm text-white">{categories[selectedElement.category as keyof typeof categories]}</p>
+                    </div>
+                  </div>
+
+                  <div className="space-y-4 mb-6">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <div className="bg-blue-900/20 p-3 rounded-xl border border-blue-500/20">
+                        <h4 className="text-[10px] font-bold text-blue-400 uppercase mb-1">Cấu hình electron</h4>
+                        <p className="text-sm text-blue-100 font-mono">{selectedElement.electronConfiguration}</p>
+                      </div>
+                      <div className="bg-teal-900/20 p-3 rounded-xl border border-teal-500/20">
+                        <h4 className="text-[10px] font-bold text-teal-400 uppercase mb-1">Độ âm điện & Số oxi hóa</h4>
+                        <p className="text-sm text-teal-100">
+                          {selectedElement.electronegativity} | {selectedElement.oxidationStates}
+                        </p>
+                      </div>
+                      <div className="bg-orange-900/20 p-3 rounded-xl border border-orange-500/20">
+                        <h4 className="text-[10px] font-bold text-orange-400 uppercase mb-1">Điểm nóng chảy/sôi</h4>
+                        <p className="text-sm text-orange-100">
+                          {selectedElement.meltingPoint} / {selectedElement.boilingPoint}
+                        </p>
+                      </div>
+                      <div className="bg-purple-900/20 p-3 rounded-xl border border-purple-500/20">
+                        <h4 className="text-[10px] font-bold text-purple-400 uppercase mb-1">Người tìm ra</h4>
+                        <p className="text-sm text-purple-100">{selectedElement.discoverer}</p>
+                      </div>
                     </div>
                   </div>
 

@@ -12,8 +12,14 @@ export interface Element {
   image: string;
   color: string;
   discoverer: string;
-  state: "Rắn" | "Lỏng" | "Khí" | "Chưa xác định";
+  state: string;
   summary: string;
+  electronConfiguration: string;
+  electronegativity: string;
+  oxidationStates: string;
+  meltingPoint: string;
+  boilingPoint: string;
+  characteristics: string;
 }
 
 export const categories = {
@@ -249,6 +255,46 @@ const detailedDescriptions: Record<number, string> = {
   118: "Nguyên tố cuối cùng của bảng tuần hoàn hiện tại, đặt tên theo Yuri Oganessian."
 };
 
+const electronConfigs: Record<number, string> = {
+  1: "1s1", 2: "1s2", 3: "[He] 2s1", 4: "[He] 2s2", 5: "[He] 2s2 2p1", 6: "[He] 2s2 2p2", 7: "[He] 2s2 2p3", 8: "[He] 2s2 2p4", 9: "[He] 2s2 2p5", 10: "[He] 2s2 2p6",
+  11: "[Ne] 3s1", 12: "[Ne] 3s2", 13: "[Ne] 3s2 3p1", 14: "[Ne] 3s2 3p2", 15: "[Ne] 3s2 3p3", 16: "[Ne] 3s2 3p4", 17: "[Ne] 3s2 3p5", 18: "[Ne] 3s2 3p6",
+  19: "[Ar] 4s1", 20: "[Ar] 4s2", 21: "[Ar] 3d1 4s2", 22: "[Ar] 3d2 4s2", 23: "[Ar] 3d3 4s2", 24: "[Ar] 3d5 4s1", 25: "[Ar] 3d5 4s2", 26: "[Ar] 3d6 4s2", 27: "[Ar] 3d7 4s2", 28: "[Ar] 3d8 4s2", 29: "[Ar] 3d10 4s1", 30: "[Ar] 3d10 4s2",
+  31: "[Ar] 3d10 4s2 4p1", 32: "[Ar] 3d10 4s2 4p2", 33: "[Ar] 3d10 4s2 4p3", 34: "[Ar] 3d10 4s2 4p4", 35: "[Ar] 3d10 4s2 4p5", 36: "[Ar] 3d10 4s2 4p6",
+  47: "[Kr] 4d10 5s1", 50: "[Kr] 4d10 5s2 5p2", 79: "[Xe] 4f14 5d10 6s1", 80: "[Xe] 4f14 5d10 6s2", 82: "[Xe] 4f14 5d10 6s2 6p2", 92: "[Rn] 5f3 6d1 7s2"
+};
+
+const electronegativities: Record<number, string> = {
+  1: "2.20", 2: "-", 3: "0.98", 4: "1.57", 5: "2.04", 6: "2.55", 7: "3.04", 8: "3.44", 9: "3.98", 10: "-",
+  11: "0.93", 12: "1.31", 13: "1.61", 14: "1.90", 15: "2.19", 16: "2.58", 17: "3.16", 18: "-",
+  19: "0.82", 20: "1.00", 26: "1.83", 29: "1.90", 30: "1.65", 47: "1.93", 50: "1.96", 79: "2.54", 80: "2.00", 82: "2.33", 92: "1.38"
+};
+
+const oxidationStates: Record<number, string> = {
+  1: "+1, -1", 2: "0", 3: "+1", 4: "+2", 5: "+3", 6: "+4, +2, -4", 7: "+5, +4, +3, +2, +1, -3", 8: "-2", 9: "-1", 10: "0",
+  11: "+1", 12: "+2", 13: "+3", 14: "+4, -4", 15: "+5, +3, -3", 16: "+6, +4, +2, -2", 17: "+7, +5, +3, +1, -1", 18: "0",
+  19: "+1", 20: "+2", 26: "+3, +2", 29: "+2, +1", 30: "+2", 47: "+1", 50: "+4, +2", 79: "+3, +1", 80: "+2, +1", 82: "+4, +2", 92: "+6, +5, +4, +3"
+};
+
+const meltingPoints: Record<number, string> = {
+  1: "-259.16 °C", 2: "-272.2 °C", 3: "180.5 °C", 4: "1287 °C", 5: "2076 °C", 6: "3550 °C", 7: "-210.1 °C", 8: "-218.79 °C", 9: "-219.67 °C", 10: "-248.59 °C",
+  11: "97.72 °C", 12: "650 °C", 13: "660.32 °C", 14: "1414 °C", 15: "44.15 °C", 16: "115.21 °C", 17: "-101.5 °C", 18: "-189.35 °C",
+  19: "63.38 °C", 20: "842 °C", 26: "1538 °C", 29: "1084.62 °C", 30: "419.53 °C", 47: "961.78 °C", 50: "231.93 °C", 79: "1064.18 °C", 80: "-38.83 °C", 82: "327.46 °C", 92: "1132.2 °C"
+};
+
+const boilingPoints: Record<number, string> = {
+  1: "-252.87 °C", 2: "-268.93 °C", 3: "1342 °C", 4: "2470 °C", 5: "3927 °C", 6: "4827 °C", 7: "-195.79 °C", 8: "-182.95 °C", 9: "-188.12 °C", 10: "-246.08 °C",
+  11: "883 °C", 12: "1090 °C", 13: "2519 °C", 14: "3265 °C", 15: "280.5 °C", 16: "444.6 °C", 17: "-34.04 °C", 18: "-185.85 °C",
+  19: "759 °C", 20: "1484 °C", 26: "2862 °C", 29: "2562 °C", 30: "907 °C", 47: "2162 °C", 50: "2602 °C", 79: "2856 °C", 80: "356.73 °C", 82: "1749 °C", 92: "4131 °C"
+};
+
+const characteristics: Record<number, string> = {
+  1: "Khí, không màu", 2: "Khí, không màu", 3: "Rắn, trắng bạc", 4: "Rắn, xám bạc", 5: "Rắn, đen/nâu", 6: "Rắn, đen (than) hoặc trong suốt (kim cương)",
+  7: "Khí, không màu", 8: "Khí, không màu", 9: "Khí, vàng nhạt", 10: "Khí, không màu", 11: "Rắn, trắng bạc", 12: "Rắn, trắng bạc",
+  13: "Rắn, trắng bạc", 14: "Rắn, xám xanh", 15: "Rắn, trắng/đỏ/đen", 16: "Rắn, vàng chanh", 17: "Khí, vàng lục", 18: "Khí, không màu",
+  19: "Rắn, trắng bạc", 20: "Rắn, xám bạc", 26: "Rắn, xám bóng", 29: "Rắn, đỏ đồng", 30: "Rắn, xám xanh", 47: "Rắn, trắng bóng",
+  50: "Rắn, trắng bạc", 79: "Rắn, vàng ánh kim", 80: "Lỏng, trắng bạc", 82: "Rắn, xám xanh", 92: "Rắn, trắng bạc"
+};
+
 export const elements: Element[] = [];
 
 for (let i = 1; i <= 118; i++) {
@@ -287,10 +333,10 @@ for (let i = 1; i <= 118; i++) {
   else if (i >= 57 && i <= 71) cat = "lanthanide";
   else if (i >= 89 && i <= 103) cat = "actinide";
 
-  let state: "Rắn" | "Lỏng" | "Khí" | "Chưa xác định" = "Rắn";
-  if ([1, 2, 7, 8, 9, 10, 17, 18, 36, 54, 86].includes(i)) state = "Khí";
-  else if ([35, 80].includes(i)) state = "Lỏng";
-  else if (i > 103) state = "Chưa xác định";
+  let stateStr = "Rắn";
+  if ([1, 2, 7, 8, 9, 10, 17, 18, 36, 54, 86].includes(i)) stateStr = "Khí";
+  else if ([35, 80].includes(i)) stateStr = "Lỏng";
+  else if (i > 103) stateStr = "Chưa xác định";
 
   const symbol = allSymbols[i - 1];
   const name = allNames[i - 1];
@@ -314,8 +360,14 @@ for (let i = 1; i <= 118; i++) {
       : `https://picsum.photos/seed/chemistry-${symbol}/400/400`,
     color: "bg-slate-200",
     discoverer: discoverers[i] || "Đang cập nhật",
-    state: state,
-    summary: `Nguyên tố hóa học số hiệu ${i}`
+    state: stateStr,
+    summary: `Nguyên tố hóa học số hiệu ${i}`,
+    electronConfiguration: electronConfigs[i] || "Đang cập nhật",
+    electronegativity: electronegativities[i] || "Đang cập nhật",
+    oxidationStates: oxidationStates[i] || "Đang cập nhật",
+    meltingPoint: meltingPoints[i] || "Đang cập nhật",
+    boilingPoint: boilingPoints[i] || "Đang cập nhật",
+    characteristics: characteristics[i] || `${stateStr}, màu sắc đang cập nhật`
   });
 }
 
