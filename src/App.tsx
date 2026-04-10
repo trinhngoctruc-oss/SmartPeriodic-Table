@@ -1,11 +1,51 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { Volume2, X, Info, Beaker, GraduationCap, PlayCircle } from 'lucide-react';
+import { Volume2, X, Info, Beaker, GraduationCap, PlayCircle, Trophy, Gamepad2, ArrowRight, CheckCircle2, XCircle, RotateCcw } from 'lucide-react';
 import { elements, categories, Element } from './data';
+import { generateQuiz, Question } from './quizService';
 
 export default function App() {
   const [selectedElement, setSelectedElement] = useState<Element | null>(null);
   const [isSpeaking, setIsSpeaking] = useState(false);
+  
+  // Quiz State
+  const [isQuizOpen, setIsQuizOpen] = useState(false);
+  const [quizQuestions, setQuizQuestions] = useState<Question[]>([]);
+  const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
+  const [score, setScore] = useState(0);
+  const [selectedAnswer, setSelectedAnswer] = useState<string | null>(null);
+  const [isAnswered, setIsAnswered] = useState(false);
+  const [showResult, setShowResult] = useState(false);
+
+  const startQuiz = () => {
+    const newQuiz = generateQuiz(elements, 15);
+    setQuizQuestions(newQuiz);
+    setCurrentQuestionIndex(0);
+    setScore(0);
+    setSelectedAnswer(null);
+    setIsAnswered(false);
+    setShowResult(false);
+    setIsQuizOpen(true);
+  };
+
+  const handleAnswerSelect = (answer: string) => {
+    if (isAnswered) return;
+    setSelectedAnswer(answer);
+    setIsAnswered(true);
+    if (answer === quizQuestions[currentQuestionIndex].correctAnswer) {
+      setScore(prev => prev + 1);
+    }
+  };
+
+  const nextQuestion = () => {
+    if (currentQuestionIndex < quizQuestions.length - 1) {
+      setCurrentQuestionIndex(prev => prev + 1);
+      setSelectedAnswer(null);
+      setIsAnswered(false);
+    } else {
+      setShowResult(true);
+    }
+  };
 
   const speak = (element: Element) => {
     if ('speechSynthesis' in window) {
@@ -143,9 +183,23 @@ export default function App() {
               Bảng Tuần Hoàn (CT GDPT 2018)
             </h1>
           </div>
-          <div className="flex items-center gap-2 text-slate-400 text-sm">
-            <GraduationCap className="w-5 h-5" />
-            <span>Lớp 7A3 - THCS Xuân Hòa</span>
+          
+          <div className="flex items-center gap-4">
+            <motion.button
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              onClick={startQuiz}
+              className="relative group flex items-center gap-2 px-6 py-2.5 bg-gradient-to-r from-amber-500 to-orange-600 rounded-full font-bold text-white shadow-[0_0_20px_rgba(245,158,11,0.3)] hover:shadow-[0_0_30px_rgba(245,158,11,0.5)] transition-all"
+            >
+              <Gamepad2 className="w-5 h-5" />
+              <span>THỬ THÁCH NHÍ</span>
+              <div className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full animate-ping" />
+            </motion.button>
+
+            <div className="hidden md:flex items-center gap-2 text-slate-400 text-sm">
+              <GraduationCap className="w-5 h-5" />
+              <span>Lớp 7A3 - THCS Xuân Hòa</span>
+            </div>
           </div>
         </div>
       </header>
@@ -336,6 +390,115 @@ export default function App() {
                   </div>
                 </div>
               </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* Quiz Modal */}
+      <AnimatePresence>
+        {isQuizOpen && (
+          <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-slate-950/95 backdrop-blur-xl">
+            <motion.div
+              initial={{ opacity: 0, y: 50 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: 50 }}
+              className="bg-slate-900 border border-slate-700 rounded-3xl overflow-hidden max-w-2xl w-full shadow-2xl relative"
+            >
+              {!showResult ? (
+                <div className="p-8">
+                  <div className="flex items-center justify-between mb-8">
+                    <div className="flex items-center gap-3">
+                      <div className="p-2 bg-amber-500 rounded-lg">
+                        <Trophy className="w-5 h-5 text-white" />
+                      </div>
+                      <span className="font-bold text-slate-300">Câu {currentQuestionIndex + 1} / 15</span>
+                    </div>
+                    <button
+                      onClick={() => setIsQuizOpen(false)}
+                      className="p-2 hover:bg-slate-800 rounded-full text-slate-500 transition-colors"
+                    >
+                      <X className="w-6 h-6" />
+                    </button>
+                  </div>
+
+                  <div className="mb-8">
+                    <h3 className="text-xl sm:text-2xl font-bold text-white leading-tight">
+                      {quizQuestions[currentQuestionIndex]?.text}
+                    </h3>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-8">
+                    {quizQuestions[currentQuestionIndex]?.options.map((option, idx) => {
+                      const labels = ['A', 'B', 'C', 'D'];
+                      const isCorrect = option === quizQuestions[currentQuestionIndex].correctAnswer;
+                      const isSelected = option === selectedAnswer;
+                      
+                      let buttonClass = "bg-slate-800 border-slate-700 text-slate-300 hover:border-blue-500/50 hover:bg-slate-800/80";
+                      if (isAnswered) {
+                        if (isCorrect) buttonClass = "bg-green-500/20 border-green-500 text-green-400";
+                        else if (isSelected) buttonClass = "bg-red-500/20 border-red-500 text-red-400";
+                        else buttonClass = "bg-slate-800/50 border-slate-700 text-slate-500 opacity-50";
+                      }
+
+                      return (
+                        <button
+                          key={idx}
+                          disabled={isAnswered}
+                          onClick={() => handleAnswerSelect(option)}
+                          className={`flex items-center gap-4 p-4 rounded-2xl border-2 transition-all text-left group ${buttonClass}`}
+                        >
+                          <span className={`w-8 h-8 flex items-center justify-center rounded-lg font-bold shrink-0 ${isAnswered && isCorrect ? 'bg-green-500 text-white' : 'bg-slate-700 text-slate-400 group-hover:bg-blue-500 group-hover:text-white'}`}>
+                            {labels[idx]}
+                          </span>
+                          <span className="font-medium">{option}</span>
+                          {isAnswered && isCorrect && <CheckCircle2 className="w-5 h-5 ml-auto text-green-500" />}
+                          {isAnswered && isSelected && !isCorrect && <XCircle className="w-5 h-5 ml-auto text-red-500" />}
+                        </button>
+                      );
+                    })}
+                  </div>
+
+                  <div className="flex justify-end">
+                    <button
+                      disabled={!isAnswered}
+                      onClick={nextQuestion}
+                      className={`flex items-center gap-2 px-8 py-3 rounded-xl font-bold transition-all ${isAnswered ? 'bg-blue-600 text-white hover:bg-blue-500 shadow-lg shadow-blue-600/20' : 'bg-slate-800 text-slate-600 cursor-not-allowed'}`}
+                    >
+                      <span>{currentQuestionIndex === 14 ? 'Xem kết quả' : 'Câu tiếp theo'}</span>
+                      <ArrowRight className="w-5 h-5" />
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <div className="p-12 text-center">
+                  <div className="w-24 h-24 bg-amber-500/20 rounded-full flex items-center justify-center mx-auto mb-6">
+                    <Trophy className="w-12 h-12 text-amber-500" />
+                  </div>
+                  <h2 className="text-3xl font-bold text-white mb-2">Hoàn thành thử thách!</h2>
+                  <p className="text-slate-400 mb-8">Bạn đã trả lời đúng được</p>
+                  
+                  <div className="text-6xl font-black text-blue-400 mb-8">
+                    {score} <span className="text-2xl text-slate-500">/ 15</span>
+                  </div>
+
+                  <div className="flex flex-col sm:flex-row gap-4 justify-center">
+                    <button
+                      onClick={startQuiz}
+                      className="flex items-center justify-center gap-2 px-8 py-4 bg-blue-600 hover:bg-blue-500 text-white rounded-2xl font-bold transition-all shadow-lg shadow-blue-600/20"
+                    >
+                      <RotateCcw className="w-5 h-5" />
+                      <span>Chơi lại</span>
+                    </button>
+                    <button
+                      onClick={() => setIsQuizOpen(false)}
+                      className="flex items-center justify-center gap-2 px-8 py-4 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-2xl font-bold transition-all border border-slate-700"
+                    >
+                      <span>Đóng</span>
+                    </button>
+                  </div>
+                </div>
+              )}
             </motion.div>
           </div>
         )}
