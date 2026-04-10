@@ -35,6 +35,11 @@ export default function App() {
     setSelectedElement(element);
   };
 
+  const groupRomanMapping: Record<number, string> = {
+    1: "IA", 2: "IIA", 3: "IIIB", 4: "IVB", 5: "VB", 6: "VIB", 7: "VIIB", 8: "VIIIB", 9: "VIIIB", 10: "VIIIB",
+    11: "IB", 12: "IIB", 13: "IIIA", 14: "IVA", 15: "VA", 16: "VIA", 17: "VIIA", 18: "VIIIA"
+  };
+
   const renderGrid = () => {
     const grid = [];
     // Main Table (Periods 1-7, Groups 1-18)
@@ -168,7 +173,7 @@ export default function App() {
             {/* Group Numbers */}
             {Array.from({ length: 18 }).map((_, i) => (
               <div key={`group-${i + 1}`} className="text-center text-[10px] font-bold text-slate-500 pb-2">
-                Nhóm {i + 1}
+                Nhóm {i + 1} ({groupRomanMapping[i + 1]})
               </div>
             ))}
             
@@ -274,7 +279,7 @@ export default function App() {
                   <div className="grid grid-cols-2 gap-4 mb-6">
                     <div className="bg-slate-800/50 p-3 rounded-xl border border-slate-700">
                       <h4 className="text-[10px] font-bold text-slate-500 uppercase mb-1">Nhóm / Chu kỳ</h4>
-                      <p className="text-sm text-white">Nhóm {selectedElement.group} / Chu kỳ {selectedElement.period}</p>
+                      <p className="text-sm text-white">Nhóm {selectedElement.group} ({groupRomanMapping[selectedElement.group]}) / Chu kỳ {selectedElement.period}</p>
                     </div>
                     <div className="bg-slate-800/50 p-3 rounded-xl border border-slate-700">
                       <h4 className="text-[10px] font-bold text-slate-500 uppercase mb-1">Tính chất đặc trưng</h4>
