@@ -110,7 +110,7 @@ export default function App() {
         if (p === 6 && g === 3) {
           grid.push(
             <div key="lanthanides-placeholder" className="flex items-center justify-center border border-slate-700 rounded-md bg-slate-800/50 text-[10px] text-slate-500 font-bold">
-              57-71 <br>(Lanthanides)
+              57-71(Lanthanides)
             </div>
           );
           continue;
