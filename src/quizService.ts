@@ -38,10 +38,10 @@ export const generateQuiz = (elements: Element[], count: number = 15): Question[
       },
       {
         text: `Nguyên tố "${el.name}" nằm ở chu kỳ ${el.period} và nhóm nào?`,
-        correct: `Nhóm ${el.group} (${groupRomanMapping[el.group]})`,
+        correct: `Nhóm ${groupRomanMapping[el.group]}`,
         getWrong: () => {
           const groups = [1, 2, 13, 14, 15, 16, 17, 18].filter(g => g !== el.group);
-          return groups.sort(() => 0.5 - Math.random()).slice(0, 3).map(g => `Nhóm ${g} (${groupRomanMapping[g]})`);
+          return groups.sort(() => 0.5 - Math.random()).slice(0, 3).map(g => `Nhóm ${groupRomanMapping[g]}`);
         }
       },
       {
