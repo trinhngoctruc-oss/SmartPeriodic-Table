@@ -101,7 +101,7 @@ export default function App() {
       // Add Period Label at the start of each row
       grid.push(
         <div key={`period-label-${p}`} className="flex items-center justify-center text-[10px] font-bold text-slate-500 pr-2">
-          {p}
+         Chu kỳ: {p}
         </div>
       );
 
