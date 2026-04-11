@@ -7,6 +7,7 @@ import { generateQuiz, Question } from './quizService';
 export default function App() {
   const [selectedElement, setSelectedElement] = useState<Element | null>(null);
   const [isSpeaking, setIsSpeaking] = useState(false);
+  const [activeCategory, setActiveCategory] = useState<string | null>(null);
   
   // Quiz State
   const [isQuizOpen, setIsQuizOpen] = useState(false);
@@ -80,6 +81,19 @@ export default function App() {
     11: "IB", 12: "IIB", 13: "IIIA", 14: "IVA", 15: "VA", 16: "VIA", 17: "VIIA", 18: "VIIIA"
   };
 
+  const getShells = (num: number) => {
+    const shells = [];
+    let remaining = num;
+    const capacities = [2, 8, 18, 32, 32, 18, 8];
+    for (const cap of capacities) {
+      if (remaining <= 0) break;
+      const count = Math.min(remaining, cap);
+      shells.push(count);
+      remaining -= count;
+    }
+    return shells;
+  };
+
   const renderGrid = () => {
     const grid = [];
     // Main Table (Periods 1-7, Groups 1-18)
@@ -87,7 +101,7 @@ export default function App() {
       // Add Period Label at the start of each row
       grid.push(
         <div key={`period-label-${p}`} className="flex items-center justify-center text-[10px] font-bold text-slate-500 pr-2">
-          Chu kỳ {p}
+          {p}
         </div>
       );
 
@@ -95,7 +109,7 @@ export default function App() {
         // Special cases for Lanthanides (57-71) and Actinides (89-103) placeholders in main table
         if (p === 6 && g === 3) {
           grid.push(
-            <div key="lanthanides-placeholder" className="flex items-center justify-center border border-slate-500 rounded-md bg-slate-700 text-[10px] text-slate-300 font-bold shadow-inner">
+            <div key="lanthanides-placeholder" className="flex items-center justify-center border border-slate-700 rounded-md bg-slate-800/50 text-[10px] text-slate-500 font-bold">
               57-71
             </div>
           );
@@ -103,7 +117,7 @@ export default function App() {
         }
         if (p === 7 && g === 3) {
           grid.push(
-            <div key="actinides-placeholder" className="flex items-center justify-center border border-slate-500 rounded-md bg-slate-700 text-[10px] text-slate-300 font-bold shadow-inner">
+            <div key="actinides-placeholder" className="flex items-center justify-center border border-slate-700 rounded-md bg-slate-800/50 text-[10px] text-slate-500 font-bold">
               89-103
             </div>
           );
@@ -113,21 +127,24 @@ export default function App() {
         const element = elements.find(e => e.period === p && e.group === g && !((e.number >= 57 && e.number <= 71) || (e.number >= 89 && e.number <= 103)));
         
         if (element) {
+          const isDimmed = activeCategory && element.category !== activeCategory;
           grid.push(
             <motion.div
               key={element.number}
               layoutId={`element-${element.number}`}
               onClick={() => handleElementClick(element)}
-              className={`relative flex flex-col items-center justify-center p-1 border border-slate-400 rounded-md cursor-pointer hover:scale-110 transition-transform shadow-md ${element.color} text-gray-900 w-full aspect-square sm:h-16`}
+              className={`relative flex flex-col items-center justify-center p-1 border border-slate-400/30 rounded-md cursor-pointer hover:scale-110 transition-all shadow-md text-gray-900 w-full aspect-square sm:h-20 ${isDimmed ? 'opacity-20 grayscale scale-95' : 'opacity-100'}`}
+              style={{ backgroundColor: element.color }}
               whileHover={{ zIndex: 10 }}
             >
               <span className="absolute top-0.5 left-1 text-[8px] sm:text-[10px] font-bold">{element.number}</span>
-              <span className="text-sm sm:text-xl font-bold">{element.symbol}</span>
-              <span className="hidden sm:block text-[8px] truncate w-full text-center px-1">{element.name}</span>
+              <span className="text-sm sm:text-xl font-bold leading-none">{element.symbol}</span>
+              <span className="hidden sm:block text-[9px] font-medium truncate w-full text-center px-1 leading-tight">{element.name}</span>
+              <span className="hidden sm:block text-[8px] font-bold opacity-70">{Math.round(parseFloat(element.atomicMass))}</span>
             </motion.div>
           );
         } else {
-          grid.push(<div key={`empty-${p}-${g}`} className="w-full h-16" />);
+          grid.push(<div key={`empty-${p}-${g}`} className="w-full h-20" />);
         }
       }
     }
@@ -139,36 +156,53 @@ export default function App() {
     const actinides = elements.filter(e => e.number >= 89 && e.number <= 103).sort((a, b) => a.number - b.number);
 
     return (
-      <div className="mt-8 space-y-1">
-        <div className="flex gap-1 ml-[calc((100%/19)*3)]">
-          {lanthanides.map(element => (
-            <motion.div
-              key={element.number}
-              onClick={() => handleElementClick(element)}
-              className={`relative flex flex-col items-center justify-center p-1 border border-slate-400 rounded-md cursor-pointer hover:scale-110 transition-transform shadow-md ${element.color} text-gray-900 w-[calc(100%/19-4px)] h-16`}
-            >
-              <span className="absolute top-0.5 left-1 text-[8px] sm:text-[10px] font-bold">{element.number}</span>
-              <span className="text-sm sm:text-xl font-bold">{element.symbol}</span>
-              <span className="hidden sm:block text-[8px] truncate w-full text-center px-1">{element.name}</span>
-            </motion.div>
-          ))}
+      <div className="mt-8 space-y-2">
+        <div className="flex gap-1 ml-[calc((100%/19)*3)] relative">
+          <div className="absolute -left-8 top-1/2 -translate-y-1/2 [writing-mode:vertical-lr] rotate-180 text-[10px] font-bold text-pink-400 uppercase tracking-widest whitespace-nowrap">
+            Họ Lanthan
+          </div>
+          {lanthanides.map(element => {
+            const isDimmed = activeCategory && element.category !== activeCategory;
+            return (
+              <motion.div
+                key={element.number}
+                onClick={() => handleElementClick(element)}
+                className={`relative flex flex-col items-center justify-center p-1 border border-slate-400/30 rounded-md cursor-pointer hover:scale-110 transition-all shadow-md text-gray-900 w-[calc(100%/19-4px)] h-20 ${isDimmed ? 'opacity-20 grayscale scale-95' : 'opacity-100'}`}
+                style={{ backgroundColor: element.color }}
+              >
+                <span className="absolute top-0.5 left-1 text-[8px] sm:text-[10px] font-bold">{element.number}</span>
+                <span className="text-sm sm:text-xl font-bold leading-none">{element.symbol}</span>
+                <span className="hidden sm:block text-[9px] font-medium truncate w-full text-center px-1 leading-tight">{element.name}</span>
+                <span className="hidden sm:block text-[8px] font-bold opacity-70">{Math.round(parseFloat(element.atomicMass))}</span>
+              </motion.div>
+            );
+          })}
         </div>
-        <div className="flex gap-1 ml-[calc((100%/19)*3)]">
-          {actinides.map(element => (
-            <motion.div
-              key={element.number}
-              onClick={() => handleElementClick(element)}
-              className={`relative flex flex-col items-center justify-center p-1 border border-slate-400 rounded-md cursor-pointer hover:scale-110 transition-transform shadow-md ${element.color} text-gray-900 w-[calc(100%/19-4px)] h-16`}
-            >
-              <span className="absolute top-0.5 left-1 text-[8px] sm:text-[10px] font-bold">{element.number}</span>
-              <span className="text-sm sm:text-xl font-bold">{element.symbol}</span>
-              <span className="hidden sm:block text-[8px] truncate w-full text-center px-1">{element.name}</span>
-            </motion.div>
-          ))}
+        <div className="flex gap-1 ml-[calc((100%/19)*3)] relative">
+          <div className="absolute -left-8 top-1/2 -translate-y-1/2 [writing-mode:vertical-lr] rotate-180 text-[10px] font-bold text-rose-400 uppercase tracking-widest whitespace-nowrap">
+            Họ Actinid
+          </div>
+          {actinides.map(element => {
+            const isDimmed = activeCategory && element.category !== activeCategory;
+            return (
+              <motion.div
+                key={element.number}
+                onClick={() => handleElementClick(element)}
+                className={`relative flex flex-col items-center justify-center p-1 border border-slate-400/30 rounded-md cursor-pointer hover:scale-110 transition-all shadow-md text-gray-900 w-[calc(100%/19-4px)] h-20 ${isDimmed ? 'opacity-20 grayscale scale-95' : 'opacity-100'}`}
+                style={{ backgroundColor: element.color }}
+              >
+                <span className="absolute top-0.5 left-1 text-[8px] sm:text-[10px] font-bold">{element.number}</span>
+                <span className="text-sm sm:text-xl font-bold leading-none">{element.symbol}</span>
+                <span className="hidden sm:block text-[9px] font-medium truncate w-full text-center px-1 leading-tight">{element.name}</span>
+                <span className="hidden sm:block text-[8px] font-bold opacity-70">{Math.round(parseFloat(element.atomicMass))}</span>
+              </motion.div>
+            );
+          })}
         </div>
       </div>
     );
   };
+;
 
   return (
     <div className="min-h-screen bg-slate-900 text-slate-100 font-sans selection:bg-blue-500/30">
@@ -192,7 +226,7 @@ export default function App() {
               className="relative group flex items-center gap-2 px-6 py-2.5 bg-gradient-to-r from-amber-500 to-orange-600 rounded-full font-bold text-white shadow-[0_0_20px_rgba(245,158,11,0.3)] hover:shadow-[0_0_30px_rgba(245,158,11,0.5)] transition-all"
             >
               <Gamepad2 className="w-5 h-5" />
-              <span>THỬ THÁCH</span>
+              <span>GAME TÌM NGUYÊN TỐ</span>
               <div className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full animate-ping" />
             </motion.button>
 
@@ -208,14 +242,27 @@ export default function App() {
         {/* Legend */}
         <div className="mb-8 flex flex-wrap gap-3 justify-center">
           {Object.entries(categories).map(([key, label]) => {
-            const color = elements.find(e => e.category === key)?.color || 'bg-slate-700';
+            const color = elements.find(e => e.category === key)?.color || '#334155';
+            const isActive = activeCategory === key;
             return (
-              <div key={key} className="flex items-center gap-2 px-3 py-1 bg-slate-800/50 rounded-full border border-slate-700 shadow-sm">
-                <div className={`w-3 h-3 rounded-full ${color}`} />
-                <span className="text-xs font-medium text-slate-300">{label}</span>
-              </div>
+              <button
+                key={key}
+                onClick={() => setActiveCategory(isActive ? null : key)}
+                className={`flex items-center gap-2 px-4 py-2 rounded-full border transition-all shadow-sm ${isActive ? 'bg-blue-600 border-blue-400 text-white scale-105' : 'bg-slate-800/50 border-slate-700 text-slate-300 hover:bg-slate-700'}`}
+              >
+                <div className="w-3 h-3 rounded-full" style={{ backgroundColor: color }} />
+                <span className="text-xs font-bold uppercase tracking-wider">{label}</span>
+              </button>
             );
           })}
+          {activeCategory && (
+            <button
+              onClick={() => setActiveCategory(null)}
+              className="text-xs font-bold text-blue-400 hover:text-blue-300 underline underline-offset-4 px-2"
+            >
+              Xóa lọc
+            </button>
+          )}
         </div>
 
         {/* Periodic Table Grid */}
@@ -227,7 +274,7 @@ export default function App() {
             {/* Group Numbers */}
             {Array.from({ length: 18 }).map((_, i) => (
               <div key={`group-${i + 1}`} className="text-center text-[10px] font-bold text-slate-500 pb-2">
-                Nhóm {i + 1} ({groupRomanMapping[i + 1]})
+                Nhóm {groupRomanMapping[i + 1]}
               </div>
             ))}
             
@@ -333,19 +380,66 @@ export default function App() {
                   <div className="grid grid-cols-2 gap-4 mb-6">
                     <div className="bg-slate-800/50 p-3 rounded-xl border border-slate-700">
                       <h4 className="text-[10px] font-bold text-slate-500 uppercase mb-1">Nhóm / Chu kỳ</h4>
-                      <p className="text-sm text-white">Nhóm {selectedElement.group} ({groupRomanMapping[selectedElement.group]}) / Chu kỳ {selectedElement.period}</p>
+                      <p className="text-sm text-white">Nhóm {groupRomanMapping[selectedElement.group]} / Chu kỳ {selectedElement.period}</p>
                     </div>
                     <div className="bg-slate-800/50 p-3 rounded-xl border border-slate-700">
                       <h4 className="text-[10px] font-bold text-slate-500 uppercase mb-1">Tính chất đặc trưng</h4>
                       <p className="text-sm text-white">{selectedElement.characteristics}</p>
                     </div>
                     <div className="bg-slate-800/50 p-3 rounded-xl border border-slate-700">
-                      <h4 className="text-[10px] font-bold text-slate-500 uppercase mb-1">Khối lượng</h4>
-                      <p className="text-sm text-white">{selectedElement.atomicMass} u</p>
+                      <h4 className="text-[10px] font-bold text-slate-500 uppercase mb-1">Khối lượng nguyên tử trung bình</h4>
+                      <p className="text-sm text-white">{selectedElement.atomicMass} (Đơn vị Amu)</p>
                     </div>
                     <div className="bg-slate-800/50 p-3 rounded-xl border border-slate-700">
-                      <h4 className="text-[10px] font-bold text-slate-500 uppercase mb-1">Phân loại</h4>
+                      <h4 className="text-[10px] font-bold text-slate-500 uppercase mb-1">Loại nguyên tố</h4>
                       <p className="text-sm text-white">{categories[selectedElement.category as keyof typeof categories]}</p>
+                    </div>
+                  </div>
+
+                  {/* Electron Shell Visualization */}
+                  <div className="mb-6 bg-slate-800/30 p-4 rounded-2xl border border-slate-700/50">
+                    <h4 className="text-xs font-bold text-blue-400 uppercase tracking-widest mb-4">Mô hình Electron</h4>
+                    <div className="flex flex-col sm:flex-row items-center gap-8">
+                      <div className="relative w-32 h-32 flex items-center justify-center">
+                        <div className="absolute w-4 h-4 bg-red-500 rounded-full shadow-[0_0_10px_rgba(239,68,68,0.5)] z-10" />
+                        {getShells(selectedElement.number).map((count, i) => (
+                          <motion.div
+                            key={i}
+                            className="absolute border border-blue-500/30 rounded-full"
+                            style={{
+                              width: `${(i + 1) * 30 + 20}px`,
+                              height: `${(i + 1) * 30 + 20}px`,
+                            }}
+                            animate={{ rotate: 360 }}
+                            transition={{ duration: 10 / (i + 1), repeat: Infinity, ease: "linear" }}
+                          >
+                            {Array.from({ length: count }).map((_, j) => (
+                              <div
+                                key={j}
+                                className="absolute w-2 h-2 bg-blue-400 rounded-full shadow-[0_0_5px_rgba(96,165,250,0.5)]"
+                                style={{
+                                  top: '50%',
+                                  left: '50%',
+                                  transform: `rotate(${(j * 360) / count}deg) translate(${(i * 15) + 10 + 15}px) rotate(-${(j * 360) / count}deg)`,
+                                  marginTop: '-4px',
+                                  marginLeft: '-4px',
+                                }}
+                              />
+                            ))}
+                          </motion.div>
+                        ))}
+                      </div>
+                      <div className="flex-1 space-y-2">
+                        <p className="text-sm font-bold text-slate-300">Cấu hình lớp:</p>
+                        <div className="flex flex-wrap gap-2">
+                          {getShells(selectedElement.number).map((count, i) => (
+                            <div key={i} className="bg-blue-500/10 border border-blue-500/20 px-3 py-1 rounded-lg">
+                              <span className="text-[10px] text-blue-400 font-bold block">Lớp {i + 1}</span>
+                              <span className="text-lg font-black text-white">{count}</span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
                     </div>
                   </div>
 
@@ -362,7 +456,7 @@ export default function App() {
                         </p>
                       </div>
                       <div className="bg-orange-900/20 p-3 rounded-xl border border-orange-500/20">
-                        <h4 className="text-[10px] font-bold text-orange-400 uppercase mb-1">Điểm nóng chảy/sôi</h4>
+                        <h4 className="text-[10px] font-bold text-orange-400 uppercase mb-1">Nhiệt độ nóng chảy/Nhiệt độ sôi</h4>
                         <p className="text-sm text-orange-100">
                           {selectedElement.meltingPoint} / {selectedElement.boilingPoint}
                         </p>
@@ -382,7 +476,7 @@ export default function App() {
                       </p>
                     </div>
                     <div>
-                      <h4 className="text-xs font-bold text-teal-400 uppercase tracking-widest mb-2">Mô tả chi tiết</h4>
+                      <h4 className="text-xs font-bold text-teal-400 uppercase tracking-widest mb-2">Ứng dụng</h4>
                       <p className="text-slate-300 text-sm leading-relaxed">
                         {selectedElement.description}
                       </p>

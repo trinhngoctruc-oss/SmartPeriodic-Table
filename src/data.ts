@@ -25,14 +25,7 @@ export interface Element {
 export const categories = {
   "nonmetal": "Phi kim",
   "noble-gas": "Khí hiếm",
-  "alkali-metal": "Kim loại kiềm",
-  "alkaline-earth-metal": "Kim loại kiềm thổ",
-  "metalloid": "Á kim",
-  "halogen": "Halogen",
-  "post-transition-metal": "Kim loại sau chuyển tiếp",
-  "transition-metal": "Kim loại chuyển tiếp",
-  "lanthanide": "Họ Lanthan",
-  "actinide": "Họ Actinid"
+  "metal": "Kim loại"
 };
 
 const allSymbols = [
@@ -377,17 +370,10 @@ for (let i = 1; i <= 118; i++) {
     else g = i - 100;
   }
 
-  let cat = "transition-metal";
+  let cat = "metal";
   if (i === 1) cat = "nonmetal";
   else if ([2, 10, 18, 36, 54, 86, 118].includes(i)) cat = "noble-gas";
-  else if ([3, 11, 19, 37, 55, 87].includes(i)) cat = "alkali-metal";
-  else if ([4, 12, 20, 38, 56, 88].includes(i)) cat = "alkaline-earth-metal";
-  else if ([5, 14, 32, 33, 51, 52].includes(i)) cat = "metalloid";
-  else if ([9, 17, 35, 53, 85, 117].includes(i)) cat = "halogen";
-  else if ([6, 7, 8, 15, 16, 34].includes(i)) cat = "nonmetal";
-  else if ([13, 31, 49, 50, 81, 82, 83, 84, 113, 114, 115, 116].includes(i)) cat = "post-transition-metal";
-  else if (i >= 57 && i <= 71) cat = "lanthanide";
-  else if (i >= 89 && i <= 103) cat = "actinide";
+  else if ([6, 7, 8, 15, 16, 34, 9, 17, 35, 53, 85, 117, 5, 14, 32, 33, 51, 52].includes(i)) cat = "nonmetal";
 
   let stateStr = "Rắn";
   if ([1, 2, 7, 8, 9, 10, 17, 18, 36, 54, 86].includes(i)) stateStr = "Khí";
@@ -429,15 +415,8 @@ for (let i = 1; i <= 118; i++) {
 
 elements.forEach(e => {
   switch (e.category) {
-    case "nonmetal": e.color = "bg-blue-200"; break;
-    case "noble-gas": e.color = "bg-purple-200"; break;
-    case "alkali-metal": e.color = "bg-red-200"; break;
-    case "alkaline-earth-metal": e.color = "bg-orange-200"; break;
-    case "metalloid": e.color = "bg-green-200"; break;
-    case "halogen": e.color = "bg-teal-200"; break;
-    case "post-transition-metal": e.color = "bg-gray-200"; break;
-    case "transition-metal": e.color = "bg-yellow-200"; break;
-    case "lanthanide": e.color = "bg-pink-200"; break;
-    case "actinide": e.color = "bg-rose-200"; break;
+    case "nonmetal": e.color = "#FF99FF"; break;
+    case "noble-gas": e.color = "#FFFF00"; break;
+    case "metal": e.color = "#00CCFF"; break;
   }
 });
