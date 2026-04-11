@@ -19,7 +19,19 @@ export const generateQuiz = (elements: Element[], count: number = 15): Question[
     11: "IB", 12: "IIB", 13: "IIIA", 14: "IVA", 15: "VA", 16: "VIA", 17: "VIIA", 18: "VIIIA"
   };
 
+  const formatElectronConfig = (config: string) => {
+    const superscripts: Record<string, string> = {
+      '0': '⁰', '1': '¹', '2': '²', '3': '³', '4': '⁴',
+      '5': '⁵', '6': '⁶', '7': '⁷', '8': '⁸', '9': '⁹'
+    };
+    return config.replace(/([spdf])(\d+)/g, (_, subshell, count) => {
+      return subshell + count.split('').map((d: string) => superscripts[d] || d).join('');
+    });
+  };
+
   return selectedElements.map((el, index) => {
+    const formattedConfig = formatElectronConfig(el.electronConfiguration);
+    
     const questionTypes = [
       {
         text: `Nguyên tố nào có ký hiệu hóa học là "${el.symbol}"?`,
@@ -45,14 +57,14 @@ export const generateQuiz = (elements: Element[], count: number = 15): Question[
         }
       },
       {
-        text: `Nguyên tố nào có cấu hình electron là "${el.electronConfiguration}"?`,
+        text: `Nguyên tố nào có cấu hình electron là "${formattedConfig}"?`,
         correct: el.name,
         getWrong: () => first20.filter(e => e.number !== el.number).sort(() => 0.5 - Math.random()).slice(0, 3).map(e => e.name)
       },
       {
         text: `Cấu hình electron của nguyên tố "${el.name}" là gì?`,
-        correct: el.electronConfiguration,
-        getWrong: () => first20.filter(e => e.number !== el.number).sort(() => 0.5 - Math.random()).slice(0, 3).map(e => e.electronConfiguration)
+        correct: formattedConfig,
+        getWrong: () => first20.filter(e => e.number !== el.number).sort(() => 0.5 - Math.random()).slice(0, 3).map(e => formatElectronConfig(e.electronConfiguration))
       },
       {
         text: `Nguyên tố nào có tính chất đặc trưng là: "${el.characteristics}"?`,

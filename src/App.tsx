@@ -382,26 +382,26 @@ export default function App() {
                     </button>
                   </div>
                   
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
+                  <div className="grid grid-cols-2 gap-3 sm:gap-4 mb-6">
                     <div className="bg-slate-800/50 p-3 rounded-xl border border-slate-700">
                       <h4 className="text-[10px] font-bold text-slate-500 uppercase mb-1">Ký hiệu hóa học</h4>
                       <p className="text-2xl font-black text-blue-400">{selectedElement.symbol}</p>
                     </div>
                     <div className="bg-slate-800/50 p-3 rounded-xl border border-slate-700">
                       <h4 className="text-[10px] font-bold text-slate-500 uppercase mb-1">Khối lượng nguyên tử trung bình</h4>
-                      <p className="text-sm text-white">{selectedElement.atomicMass} (Đơn vị Amu)</p>
+                      <p className="text-xs sm:text-sm text-white">{selectedElement.atomicMass} (Đơn vị Amu)</p>
                     </div>
                     <div className="bg-slate-800/50 p-3 rounded-xl border border-slate-700">
                       <h4 className="text-[10px] font-bold text-slate-500 uppercase mb-1">Nhóm / Chu kỳ</h4>
-                      <p className="text-sm text-white">Nhóm {groupRomanMapping[selectedElement.group]} / Chu kỳ {selectedElement.period}</p>
-                    </div>
-                    <div className="bg-slate-800/50 p-3 rounded-xl border border-slate-700">
-                      <h4 className="text-[10px] font-bold text-slate-500 uppercase mb-1">Tính chất đặc trưng</h4>
-                      <p className="text-sm text-white">{selectedElement.characteristics}</p>
+                      <p className="text-xs sm:text-sm text-white">Nhóm {groupRomanMapping[selectedElement.group]} / Chu kỳ {selectedElement.period}</p>
                     </div>
                     <div className="bg-slate-800/50 p-3 rounded-xl border border-slate-700">
                       <h4 className="text-[10px] font-bold text-slate-500 uppercase mb-1">Loại nguyên tố</h4>
-                      <p className="text-sm text-white">{categories[selectedElement.category as keyof typeof categories]}</p>
+                      <p className="text-xs sm:text-sm text-white">{categories[selectedElement.category as keyof typeof categories]}</p>
+                    </div>
+                    <div className="bg-slate-800/50 p-3 rounded-xl border border-slate-700 col-span-2">
+                      <h4 className="text-[10px] font-bold text-slate-500 uppercase mb-1">Tính chất đặc trưng</h4>
+                      <p className="text-xs sm:text-sm text-white">{selectedElement.characteristics}</p>
                     </div>
                   </div>
 
@@ -453,10 +453,10 @@ export default function App() {
                   </div>
 
                   <div className="space-y-4 mb-6">
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                      <div className="bg-blue-900/20 p-3 rounded-xl border border-blue-500/20">
+                    <div className="grid grid-cols-2 gap-3 sm:gap-4">
+                      <div className="bg-blue-900/20 p-3 rounded-xl border border-blue-500/20 col-span-2">
                         <h4 className="text-[10px] font-bold text-blue-400 uppercase mb-1">Cấu hình electron</h4>
-                        <p className="text-sm text-blue-100 font-mono">
+                        <p className="text-xs sm:text-sm text-blue-100 font-mono">
                           {selectedElement.electronConfiguration.split(' ').map((part, idx) => {
                             const match = part.match(/([1-7][spdf])(\d+)/);
                             if (match) {
@@ -468,19 +468,19 @@ export default function App() {
                       </div>
                       <div className="bg-teal-900/20 p-3 rounded-xl border border-teal-500/20">
                         <h4 className="text-[10px] font-bold text-teal-400 uppercase mb-1">Độ âm điện & Số oxi hóa</h4>
-                        <p className="text-sm text-teal-100">
+                        <p className="text-xs sm:text-sm text-teal-100">
                           {selectedElement.electronegativity} | {selectedElement.oxidationStates}
                         </p>
                       </div>
                       <div className="bg-orange-900/20 p-3 rounded-xl border border-orange-500/20">
                         <h4 className="text-[10px] font-bold text-orange-400 uppercase mb-1">Nhiệt độ nóng chảy/Nhiệt độ sôi</h4>
-                        <p className="text-sm text-orange-100">
+                        <p className="text-xs sm:text-sm text-orange-100">
                           {selectedElement.meltingPoint} / {selectedElement.boilingPoint}
                         </p>
                       </div>
-                      <div className="bg-purple-900/20 p-3 rounded-xl border border-purple-500/20">
+                      <div className="bg-purple-900/20 p-3 rounded-xl border border-purple-500/20 col-span-2">
                         <h4 className="text-[10px] font-bold text-purple-400 uppercase mb-1">Người tìm ra</h4>
-                        <p className="text-sm text-purple-100">{selectedElement.discoverer}</p>
+                        <p className="text-xs sm:text-sm text-purple-100">{selectedElement.discoverer}</p>
                       </div>
                     </div>
                   </div>
