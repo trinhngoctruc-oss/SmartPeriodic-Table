@@ -293,10 +293,10 @@ export default function App() {
           <div className="bg-slate-800/50 p-6 rounded-2xl border border-slate-700">
             <div className="flex items-center gap-3 mb-4 text-blue-400">
               <Info className="w-6 h-6" />
-              <h3 className="font-bold text-lg">Hướng dẫn</h3>
+              <h3 className="font-bold text-lg">Hướng dẫn sử dụng</h3>
             </div>
             <ul className="text-slate-400 text-sm space-y-2 list-disc pl-4">
-              <li>Tra cứu nguyên tố: Nhấn vào nguyên tố để xem thông tin chi tiết.</li>
+              <li>Tra cứu nguyên tố bằng cách nhấn vào nguyên tố để xem thông tin chi tiết.</li>
               <li>Nhấn nút "Nghe đọc" để luyện đọc tên nguyên tố.</li>
               <li>Bảng bao gồm đầy đủ 118 nguyên tố hóa học.</li>
               <li className="text-blue-300 font-medium">Hỗ trợ cài đặt trên Android và iOS.</li>
