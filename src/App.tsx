@@ -275,12 +275,12 @@ export default function App() {
       {/* Element Detail Modal */}
       <AnimatePresence>
         {selectedElement && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/90 backdrop-blur-md">
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-0 sm:p-4 bg-slate-950/95 backdrop-blur-xl">
             <motion.div
               initial={{ opacity: 0, scale: 0.9, y: 20 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.9, y: 20 }}
-              className="bg-slate-900 border border-slate-700 rounded-3xl overflow-hidden max-w-3xl w-full shadow-2xl relative"
+              className="bg-slate-900 border-0 sm:border sm:border-slate-700 w-full h-full sm:h-auto sm:max-w-3xl sm:rounded-3xl overflow-hidden shadow-2xl flex flex-col relative"
             >
               <button
                 onClick={() => {
@@ -288,12 +288,12 @@ export default function App() {
                   window.speechSynthesis.cancel();
                   setIsSpeaking(false);
                 }}
-                className="absolute top-4 right-4 sm:top-6 sm:right-6 p-2 bg-slate-800/90 hover:bg-slate-700 rounded-full text-slate-100 hover:text-white transition-colors z-50 shadow-2xl border border-slate-700/50 backdrop-blur-md"
+                className="absolute top-10 right-6 sm:top-6 sm:right-6 p-3 bg-slate-800/90 hover:bg-slate-700 rounded-full text-white transition-colors z-[60] shadow-2xl border border-slate-600/50 backdrop-blur-md active:scale-90"
               >
                 <X className="w-6 h-6" />
               </button>
 
-              <div className="flex flex-col md:flex-row">
+              <div className="flex flex-col md:flex-row h-full overflow-y-auto sm:overflow-visible">
                 {/* Image Section */}
                 <div className="md:w-2/5 h-64 md:h-auto relative">
                   <img
