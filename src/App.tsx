@@ -306,7 +306,7 @@ export default function App() {
             <div>
               <h2 className="text-xl font-bold mb-2">Dự án Bảng tuần hoàn thông minh - Học sinh lớp 7A3 Trường THCS Xuân Hòa</h2>
               <p className="text-slate-300 max-w-lg">
-                Ứng dụng giúp học sinh dễ dàng tiếp cận và ghi nhớ các nguyên tố hóa học thông qua hình ảnh và âm thanh trực quan.
+                Ứng dụng giúp học sinh dễ dàng tiếp cận và ghi nhớ các nguyên tố hóa học thông qua hình ảnh và âm thanh trực quan. Đồng thời có thể trải nghiệm Game tìm nguyên tố để rèn luyện ghi nhớ các nguyên tố hóa học
               </p>
             </div>
           </div>
