@@ -180,7 +180,7 @@ export default function App() {
         </div>
         <div className="flex gap-1 ml-[calc((100%/19)*3)] relative">
           <div className="absolute -left-8 top-1/2 -translate-y-1/2 [writing-mode:vertical-lr] rotate-180 text-[10px] font-bold text-rose-400 uppercase tracking-widest whitespace-nowrap">
-            Actinid
+            Actinides
           </div>
           {actinides.map(element => {
             const isDimmed = activeCategory && element.category !== activeCategory;
