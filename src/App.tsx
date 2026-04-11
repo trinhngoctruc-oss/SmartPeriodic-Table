@@ -109,7 +109,7 @@ export default function App() {
         // Special cases for Lanthanides (57-71) and Actinides (89-103) placeholders in main table
         if (p === 6 && g === 3) {
           grid.push(
-            <div key="lanthanides-placeholder" className="flex items-center justify-center border border-slate-700 rounded-md bg-slate-800/50 text-[10px] text-slate-500 font-bold">
+            <div key="lanthanides-placeholder" className="flex items-center justify-center border border-slate-700 rounded-md bg-slate-800/50 text-[8px] text-slate-500 font-bold">
             <center> 57-71 Lanthanides</center>
             </div>
           );
