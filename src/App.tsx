@@ -139,8 +139,8 @@ export default function App() {
             >
               <span className="absolute top-0.5 left-1 text-[8px] sm:text-[10px] font-bold">{element.number}</span>
               <span className="text-sm sm:text-xl font-bold leading-none">{element.symbol}</span>
-              <span className="hidden sm:block text-[9px] font-medium truncate w-full text-center px-1 leading-tight">{element.name}</span>
-              <span className="hidden sm:block text-[8px] font-bold opacity-70">{Math.round(parseFloat(element.atomicMass))}</span>
+              <span className="hidden sm:block text-[9px] font-medium truncate w-full text-center px-1 leading-tight mb-1">{element.name}</span>
+              <span className="absolute bottom-0.5 left-0 w-full text-center text-[8px] sm:text-[10px] font-bold opacity-70">{Math.round(parseFloat(element.atomicMass))}</span>
             </motion.div>
           );
         } else {
@@ -172,8 +172,8 @@ export default function App() {
               >
                 <span className="absolute top-0.5 left-1 text-[8px] sm:text-[10px] font-bold">{element.number}</span>
                 <span className="text-sm sm:text-xl font-bold leading-none">{element.symbol}</span>
-                <span className="hidden sm:block text-[9px] font-medium truncate w-full text-center px-1 leading-tight">{element.name}</span>
-                <span className="hidden sm:block text-[8px] font-bold opacity-70">{Math.round(parseFloat(element.atomicMass))}</span>
+                <span className="hidden sm:block text-[9px] font-medium truncate w-full text-center px-1 leading-tight mb-1">{element.name}</span>
+                <span className="absolute bottom-0.5 left-0 w-full text-center text-[8px] sm:text-[10px] font-bold opacity-70">{Math.round(parseFloat(element.atomicMass))}</span>
               </motion.div>
             );
           })}
@@ -193,8 +193,8 @@ export default function App() {
               >
                 <span className="absolute top-0.5 left-1 text-[8px] sm:text-[10px] font-bold">{element.number}</span>
                 <span className="text-sm sm:text-xl font-bold leading-none">{element.symbol}</span>
-                <span className="hidden sm:block text-[9px] font-medium truncate w-full text-center px-1 leading-tight">{element.name}</span>
-                <span className="hidden sm:block text-[8px] font-bold opacity-70">{Math.round(parseFloat(element.atomicMass))}</span>
+                <span className="hidden sm:block text-[9px] font-medium truncate w-full text-center px-1 leading-tight mb-1">{element.name}</span>
+                <span className="absolute bottom-0.5 left-0 w-full text-center text-[8px] sm:text-[10px] font-bold opacity-70">{Math.round(parseFloat(element.atomicMass))}</span>
               </motion.div>
             );
           })}
