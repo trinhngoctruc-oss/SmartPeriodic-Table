@@ -214,7 +214,7 @@ export default function App() {
               <Beaker className="w-6 h-6 text-white" />
             </div>
             <h1 className="text-2xl sm:text-3xl font-bold tracking-tight bg-gradient-to-r from-blue-400 to-teal-400 bg-clip-text text-transparent">
-              Bảng Tuần Hoàn (CT GDPT 2018)
+              BẢNG TUẦN HOÀN THÔNG MINH
             </h1>
           </div>
           
