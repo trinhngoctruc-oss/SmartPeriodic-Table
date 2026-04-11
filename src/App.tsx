@@ -159,7 +159,7 @@ export default function App() {
       <div className="mt-8 space-y-2">
         <div className="flex gap-1 ml-[calc((100%/19)*3)] relative">
           <div className="absolute -left-8 top-1/2 -translate-y-1/2 [writing-mode:vertical-lr] rotate-180 text-[10px] font-bold text-pink-400 uppercase tracking-widest whitespace-nowrap">
-           Lanthanides
+            Lanthanides
           </div>
           {lanthanides.map(element => {
             const isDimmed = activeCategory && element.category !== activeCategory;
@@ -180,7 +180,7 @@ export default function App() {
         </div>
         <div className="flex gap-1 ml-[calc((100%/19)*3)] relative">
           <div className="absolute -left-8 top-1/2 -translate-y-1/2 [writing-mode:vertical-lr] rotate-180 text-[10px] font-bold text-rose-400 uppercase tracking-widest whitespace-nowrap">
-           Actinides
+            Actinid
           </div>
           {actinides.map(element => {
             const isDimmed = activeCategory && element.category !== activeCategory;
@@ -296,15 +296,15 @@ export default function App() {
               <h3 className="font-bold text-lg">Hướng dẫn</h3>
             </div>
             <ul className="text-slate-400 text-sm space-y-2 list-disc pl-4">
-              <li>Nhấn vào nguyên tố để xem thông tin chi tiết.</li>
-              <li>Nhấn nút "Nghe đọc" trong bảng thông tin để nghe miêu tả bằng tiếng Việt.</li>
+              <li>Tra cứu nguyên tố: Nhấn vào nguyên tố để xem thông tin chi tiết.</li>
+              <li>Nhấn nút "Nghe đọc" để luyện đọc tên nguyên tố.</li>
               <li>Bảng bao gồm đầy đủ 118 nguyên tố hóa học.</li>
               <li className="text-blue-300 font-medium">Hỗ trợ cài đặt trên Android và iOS.</li>
             </ul>
           </div>
           <div className="md:col-span-2 bg-gradient-to-br from-blue-600/20 to-teal-600/20 p-6 rounded-2xl border border-blue-500/20 flex items-center justify-center text-center">
             <div>
-              <h2 className="text-xl font-bold mb-2">Dự án Hóa học 7</h2>
+              <h2 className="text-xl font-bold mb-2">Dự án Bảng tuần hoàn thông minh - Học sinh lớp 7A3 Trường THCS Xuân Hòa</h2>
               <p className="text-slate-300 max-w-lg">
                 Ứng dụng giúp học sinh dễ dàng tiếp cận và ghi nhớ các nguyên tố hóa học thông qua hình ảnh và âm thanh trực quan.
               </p>
@@ -315,7 +315,7 @@ export default function App() {
 
       {/* Footer */}
       <footer className="mt-12 p-8 border-t border-slate-800 text-center text-slate-500">
-        <p className="text-sm">Nhóm thực hiện: <span className="text-blue-400 font-bold uppercase tracking-wider">Lớp 7A3 - THCS Xuân Hòa</span></p>
+        <p className="text-sm">Nhóm thực hiện: <span className="text-blue-400 font-bold uppercase tracking-wider">Học sinh Lớp 7A3 - Trường THCS Xuân Hòa</span></p>
         <p className="text-xs mt-2">© 2026 Ứng dụng Giáo dục Hóa học - Phiên bản 2.0</p>
       </footer>
 
