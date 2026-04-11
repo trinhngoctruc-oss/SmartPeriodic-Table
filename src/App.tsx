@@ -288,7 +288,7 @@ export default function App() {
                   window.speechSynthesis.cancel();
                   setIsSpeaking(false);
                 }}
-                className="absolute top-6 right-6 p-2 bg-slate-800 hover:bg-slate-700 rounded-full text-slate-400 hover:text-white transition-colors z-10 shadow-lg"
+                className="absolute top-4 right-4 sm:top-6 sm:right-6 p-2 bg-slate-800/90 hover:bg-slate-700 rounded-full text-slate-100 hover:text-white transition-colors z-50 shadow-2xl border border-slate-700/50 backdrop-blur-md"
               >
                 <X className="w-6 h-6" />
               </button>
