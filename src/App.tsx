@@ -327,7 +327,7 @@ export default function App() {
               initial={{ opacity: 0, scale: 0.9, y: 20 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.9, y: 20 }}
-              className="bg-slate-900 border-0 sm:border sm:border-slate-700 w-full h-full sm:h-auto sm:max-w-3xl sm:rounded-3xl overflow-hidden shadow-2xl flex flex-col relative"
+              className="bg-slate-900 border-0 sm:border sm:border-slate-700 w-full h-full sm:h-[90vh] sm:max-w-3xl sm:rounded-3xl overflow-hidden shadow-2xl flex flex-col relative"
             >
               <button
                 onClick={() => {
@@ -340,24 +340,9 @@ export default function App() {
                 <X className="w-6 h-6" />
               </button>
 
-              <div className="flex flex-col md:flex-row h-full overflow-y-auto sm:overflow-visible">
-                {/* Image Section */}
-                <div className="md:w-2/5 h-64 md:h-auto relative">
-                  <img
-                    src={selectedElement.image}
-                    alt={selectedElement.name}
-                    className="w-full h-full object-cover"
-                    referrerPolicy="no-referrer"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-slate-900 via-transparent to-transparent" />
-                  <div className={`absolute bottom-6 left-6 p-5 rounded-2xl ${selectedElement.color} text-slate-900 shadow-xl`}>
-                    <div className="text-sm font-bold opacity-70">#{selectedElement.number}</div>
-                    <div className="text-5xl font-black">{selectedElement.symbol}</div>
-                  </div>
-                </div>
-
+              <div className="h-full overflow-y-auto">
                 {/* Content Section */}
-                <div className="md:w-3/5 p-8 max-h-[80vh] overflow-y-auto">
+                <div className="p-8">
                   <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
                     <div>
                       <div className="flex items-center gap-2 mb-1">
@@ -409,7 +394,7 @@ export default function App() {
                   <div className="mb-6 bg-slate-800/30 p-4 rounded-2xl border border-slate-700/50">
                     <h4 className="text-xs font-bold text-blue-400 uppercase tracking-widest mb-4">Mô hình Electron</h4>
                     <div className="flex flex-col sm:flex-row items-center gap-8">
-                      <div className="relative w-32 h-32 flex items-center justify-center">
+                      <div className="relative w-32 h-32 flex items-center justify-center" style={{ perspective: '800px' }}>
                         <div className="absolute w-4 h-4 bg-red-500 rounded-full shadow-[0_0_10px_rgba(239,68,68,0.5)] z-10" />
                         {getShells(selectedElement.number).map((count, i) => (
                           <motion.div
@@ -418,9 +403,18 @@ export default function App() {
                             style={{
                               width: `${(i + 1) * 30 + 20}px`,
                               height: `${(i + 1) * 30 + 20}px`,
+                              transformStyle: 'preserve-3d'
                             }}
-                            animate={{ rotate: 360 }}
-                            transition={{ duration: 10 / (i + 1), repeat: Infinity, ease: "linear" }}
+                            animate={{ 
+                              rotateZ: 360,
+                              rotateX: [0, 20, 0],
+                              rotateY: [0, 20, 0]
+                            }}
+                            transition={{ 
+                              rotateZ: { duration: 25 / (i + 1), repeat: Infinity, ease: "linear" },
+                              rotateX: { duration: 5, repeat: Infinity, ease: "easeInOut" },
+                              rotateY: { duration: 7, repeat: Infinity, ease: "easeInOut" }
+                            }}
                           >
                             {Array.from({ length: count }).map((_, j) => (
                               <div
@@ -485,12 +479,27 @@ export default function App() {
                     </div>
                   </div>
 
-                  <div className="space-y-6">
+                  <div className="space-y-6 mb-8">
                     <div>
                       <h4 className="text-xs font-bold text-teal-400 uppercase tracking-widest mb-2">Ứng dụng</h4>
                       <p className="text-slate-300 text-sm leading-relaxed">
                         {selectedElement.description}
                       </p>
+                    </div>
+                  </div>
+
+                  {/* Image Section - Moved to bottom */}
+                  <div className="relative rounded-2xl overflow-hidden h-64 sm:h-80 border border-slate-700">
+                    <img
+                      src={selectedElement.image}
+                      alt={selectedElement.name}
+                      className="w-full h-full object-cover"
+                      referrerPolicy="no-referrer"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-slate-900 via-transparent to-transparent" />
+                    <div className={`absolute bottom-6 left-6 p-4 rounded-xl ${selectedElement.color} text-slate-900 shadow-xl`}>
+                      <div className="text-[10px] font-bold opacity-70">Hình ảnh minh họa</div>
+                      <div className="text-2xl font-black">{selectedElement.name}</div>
                     </div>
                   </div>
                 </div>

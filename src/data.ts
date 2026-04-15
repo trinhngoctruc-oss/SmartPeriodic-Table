@@ -25,7 +25,10 @@ export interface Element {
 export const categories = {
   "nonmetal": "Phi kim",
   "noble-gas": "Khí hiếm",
-  "metal": "Kim loại"
+  "metal": "Kim loại",
+  "transition-metal": "Kim loại chuyển tiếp",
+  "halogen": "Nhóm Halogen",
+  "bonding-orbital": "Orbital liên kết"
 };
 
 const allSymbols = [
@@ -373,7 +376,10 @@ for (let i = 1; i <= 118; i++) {
   let cat = "metal";
   if (i === 1) cat = "nonmetal";
   else if ([2, 10, 18, 36, 54, 86, 118].includes(i)) cat = "noble-gas";
-  else if ([6, 7, 8, 15, 16, 34, 9, 17, 35, 53, 85, 117, 5, 14, 32, 33, 51, 52].includes(i)) cat = "nonmetal";
+  else if ([9, 17, 35, 53, 85, 117].includes(i)) cat = "halogen";
+  else if ([5, 14, 32, 33, 51, 52, 84].includes(i)) cat = "bonding-orbital";
+  else if (g >= 3 && g <= 12) cat = "transition-metal";
+  else if ([6, 7, 8, 15, 16, 34].includes(i)) cat = "nonmetal";
 
   let stateStr = "Rắn";
   if ([1, 2, 7, 8, 9, 10, 17, 18, 36, 54, 86].includes(i)) stateStr = "Khí";
@@ -417,6 +423,9 @@ elements.forEach(e => {
   switch (e.category) {
     case "nonmetal": e.color = "#FF99FF"; break;
     case "noble-gas": e.color = "#FFFF00"; break;
-    case "metal": e.color = "#00CCFF"; break;
+    case "metal": e.color = "#87CEFA"; break;
+    case "transition-metal": e.color = "#FF99CC"; break;
+    case "halogen": e.color = "#6A5ACD"; break;
+    case "bonding-orbital": e.color = "#ACE1AF"; break;
   }
 });
