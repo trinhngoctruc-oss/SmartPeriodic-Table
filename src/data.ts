@@ -6,6 +6,8 @@ export interface Element {
   phonetic: string;
   atomicMass: string;
   category: string;
+  block: string;
+  isRadioactive: boolean;
   group: number;
   period: number;
   description: string;
@@ -23,12 +25,21 @@ export interface Element {
 }
 
 export const categories = {
-  "nonmetal": "Phi kim",
-  "noble-gas": "Khí hiếm",
-  "metal": "Kim loại",
+  "alkali-metal": "Kim loại kiềm",
+  "alkaline-earth": "Kim loại kiềm thổ",
   "transition-metal": "Kim loại chuyển tiếp",
-  "halogen": "Nhóm Halogen",
-  "bonding-orbital": "Orbital liên kết"
+  "post-transition-metal": "Kim loại khác",
+  "metalloid": "Á kim",
+  "nonmetal": "Phi kim",
+  "halogen": "Halogen",
+  "noble-gas": "Khí hiếm",
+  "lanthanide": "Họ Lanthan",
+  "actinide": "Họ Actinid",
+  "radioactive": "Nguyên tố phóng xạ",
+  "block-s": "Nguyên tố s",
+  "block-p": "Nguyên tố p",
+  "block-d": "Nguyên tố d",
+  "block-f": "Nguyên tố f"
 };
 
 const allSymbols = [
@@ -373,13 +384,31 @@ for (let i = 1; i <= 118; i++) {
     else g = i - 100;
   }
 
-  let cat = "metal";
+  let cat = "post-transition-metal";
+  let block = "";
+  let isRadioactive = false;
+
+  // Category Logic
   if (i === 1) cat = "nonmetal";
-  else if ([2, 10, 18, 36, 54, 86, 118].includes(i)) cat = "noble-gas";
-  else if ([9, 17, 35, 53, 85, 117].includes(i)) cat = "halogen";
-  else if ([5, 14, 32, 33, 51, 52, 84].includes(i)) cat = "bonding-orbital";
+  else if (g === 1 && p > 1) cat = "alkali-metal";
+  else if (g === 2) cat = "alkaline-earth";
+  else if (i >= 57 && i <= 71) cat = "lanthanide";
+  else if (i >= 89 && i <= 103) cat = "actinide";
   else if (g >= 3 && g <= 12) cat = "transition-metal";
+  else if (g === 18) cat = "noble-gas";
+  else if (g === 17) cat = "halogen";
+  else if ([5, 14, 32, 33, 51, 52, 84].includes(i)) cat = "metalloid";
   else if ([6, 7, 8, 15, 16, 34].includes(i)) cat = "nonmetal";
+  else if ([13, 31, 49, 50, 81, 82, 83].includes(i)) cat = "post-transition-metal";
+
+  // Block Logic
+  if (g <= 2 || i === 2) block = "block-s";
+  else if (g >= 13) block = "block-p";
+  else if (g >= 3 && g <= 12) block = "block-d";
+  if ((i >= 57 && i <= 71) || (i >= 89 && i <= 103)) block = "block-f";
+
+  // Radioactive Logic (Z > 83 or Tc, Pm)
+  if (i > 83 || i === 43 || i === 61) isRadioactive = true;
 
   let stateStr = "Rắn";
   if ([1, 2, 7, 8, 9, 10, 17, 18, 36, 54, 86].includes(i)) stateStr = "Khí";
@@ -400,6 +429,8 @@ for (let i = 1; i <= 118; i++) {
     phonetic: phonetics[i] || "/.../",
     atomicMass: atomicMasses[i - 1],
     category: cat,
+    block: block,
+    isRadioactive: isRadioactive,
     group: g,
     period: p,
     description: detailedDescriptions[i] || `Nguyên tố ${name} là một phần quan trọng của bảng tuần hoàn hóa học.`,
@@ -421,11 +452,23 @@ for (let i = 1; i <= 118; i++) {
 
 elements.forEach(e => {
   switch (e.category) {
-    case "nonmetal": e.color = "#FF99FF"; break;
-    case "noble-gas": e.color = "#FFFF00"; break;
-    case "metal": e.color = "#87CEFA"; break;
+    case "alkali-metal": e.color = "#FFB3BA"; break;
+    case "alkaline-earth": e.color = "#FFDFBA"; break;
     case "transition-metal": e.color = "#FF99CC"; break;
-    case "halogen": e.color = "#6A5ACD"; break;
-    case "bonding-orbital": e.color = "#ACE1AF"; break;
+    case "post-transition-metal": e.color = "#BAFFC9"; break;
+    case "metalloid": e.color = "#BAE1FF"; break;
+    case "nonmetal": e.color = "#B9BCFF"; break;
+    case "halogen": e.color = "#F1CBFF"; break;
+    case "noble-gas": e.color = "#ECEAE4"; break;
+    case "lanthanide": e.color = "#D4F1F4"; break;
+    case "actinide": e.color = "#A8E6CF"; break;
   }
 });
+
+export const blockColors: Record<string, string> = {
+  "block-s": "#C5E1A5",
+  "block-p": "#FFE082",
+  "block-d": "#90CAF9",
+  "block-f": "#F48FB1",
+  "radioactive": "#FAD0C4"
+};

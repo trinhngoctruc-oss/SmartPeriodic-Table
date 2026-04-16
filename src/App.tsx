@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Volume2, X, Info, Beaker, GraduationCap, PlayCircle, Trophy, Gamepad2, ArrowRight, CheckCircle2, XCircle, RotateCcw } from 'lucide-react';
-import { elements, categories, Element } from './data';
+import { elements, categories, Element, blockColors } from './data';
 import { generateQuiz, Question } from './quizService';
 
 export default function App() {
@@ -127,7 +127,11 @@ export default function App() {
         const element = elements.find(e => e.period === p && e.group === g && !((e.number >= 57 && e.number <= 71) || (e.number >= 89 && e.number <= 103)));
         
         if (element) {
-          const isDimmed = activeCategory && element.category !== activeCategory;
+          const isDimmed = activeCategory && !(
+            element.category === activeCategory || 
+            element.block === activeCategory || 
+            (activeCategory === 'radioactive' && element.isRadioactive)
+          );
           grid.push(
             <motion.div
               key={element.number}
@@ -158,11 +162,15 @@ export default function App() {
     return (
       <div className="mt-8 space-y-2">
         <div className="flex gap-1 ml-[calc((100%/19)*3)] relative">
-          <div className="absolute -left-8 top-1/2 -translate-y-1/2 [writing-mode:vertical-lr] rotate-180 text-[10px] font-bold text-pink-400 uppercase tracking-widest whitespace-nowrap">
-            Lanthanides
+          <div className="absolute -left-10 top-1/2 -translate-y-1/2 [writing-mode:vertical-lr] rotate-180 text-[10px] font-bold text-blue-400 uppercase tracking-widest whitespace-nowrap">
+            Họ Lanthan
           </div>
           {lanthanides.map(element => {
-            const isDimmed = activeCategory && element.category !== activeCategory;
+            const isDimmed = activeCategory && !(
+              element.category === activeCategory || 
+              element.block === activeCategory || 
+              (activeCategory === 'radioactive' && element.isRadioactive)
+            );
             return (
               <motion.div
                 key={element.number}
@@ -179,11 +187,15 @@ export default function App() {
           })}
         </div>
         <div className="flex gap-1 ml-[calc((100%/19)*3)] relative">
-          <div className="absolute -left-8 top-1/2 -translate-y-1/2 [writing-mode:vertical-lr] rotate-180 text-[10px] font-bold text-rose-400 uppercase tracking-widest whitespace-nowrap">
-            Actinides
+          <div className="absolute -left-10 top-1/2 -translate-y-1/2 [writing-mode:vertical-lr] rotate-180 text-[10px] font-bold text-emerald-400 uppercase tracking-widest whitespace-nowrap">
+            Họ Actinid
           </div>
           {actinides.map(element => {
-            const isDimmed = activeCategory && element.category !== activeCategory;
+            const isDimmed = activeCategory && !(
+              element.category === activeCategory || 
+              element.block === activeCategory || 
+              (activeCategory === 'radioactive' && element.isRadioactive)
+            );
             return (
               <motion.div
                 key={element.number}
@@ -240,18 +252,18 @@ export default function App() {
 
       <main className="max-w-[1400px] mx-auto p-4 sm:p-8">
         {/* Legend */}
-        <div className="mb-8 flex flex-wrap gap-3 justify-center">
+        <div className="mb-8 flex flex-wrap gap-2 justify-center max-w-5xl mx-auto p-4 bg-slate-800/20 rounded-3xl border border-slate-700/50 backdrop-blur-sm">
           {Object.entries(categories).map(([key, label]) => {
-            const color = elements.find(e => e.category === key)?.color || '#334155';
+            const color = elements.find(e => e.category === key)?.color || blockColors[key] || '#334155';
             const isActive = activeCategory === key;
             return (
               <button
                 key={key}
                 onClick={() => setActiveCategory(isActive ? null : key)}
-                className={`flex items-center gap-2 px-4 py-2 rounded-full border transition-all shadow-sm ${isActive ? 'bg-blue-600 border-blue-400 text-white scale-105' : 'bg-slate-800/50 border-slate-700 text-slate-300 hover:bg-slate-700'}`}
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full border transition-all shadow-sm ${isActive ? 'bg-blue-600 border-blue-400 text-white scale-105' : 'bg-slate-800/50 border-slate-700 text-slate-300 hover:bg-slate-700'}`}
               >
-                <div className="w-3 h-3 rounded-full" style={{ backgroundColor: color }} />
-                <span className="text-xs font-bold uppercase tracking-wider">{label}</span>
+                <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: color }} />
+                <span className="text-[10px] font-bold uppercase tracking-wider">{label}</span>
               </button>
             );
           })}
