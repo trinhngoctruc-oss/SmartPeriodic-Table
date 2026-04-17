@@ -163,7 +163,7 @@ export default function App() {
       <div className="mt-8 space-y-2">
         <div className="flex gap-1 ml-[calc((100%/19)*3)] relative">
           <div className="absolute -left-10 top-1/2 -translate-y-1/2 [writing-mode:vertical-lr] rotate-180 text-[10px] font-bold text-blue-400 uppercase tracking-widest whitespace-nowrap">
-            Họ Lanthan
+            Lanthanides
           </div>
           {lanthanides.map(element => {
             const isDimmed = activeCategory && !(
@@ -188,7 +188,7 @@ export default function App() {
         </div>
         <div className="flex gap-1 ml-[calc((100%/19)*3)] relative">
           <div className="absolute -left-10 top-1/2 -translate-y-1/2 [writing-mode:vertical-lr] rotate-180 text-[10px] font-bold text-emerald-400 uppercase tracking-widest whitespace-nowrap">
-            Họ Actinid
+            Actinides
           </div>
           {actinides.map(element => {
             const isDimmed = activeCategory && !(
@@ -263,7 +263,7 @@ export default function App() {
                 className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full border transition-all shadow-sm ${isActive ? 'bg-blue-600 border-blue-400 text-white scale-105' : 'bg-slate-800/50 border-slate-700 text-slate-300 hover:bg-slate-700'}`}
               >
                 <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: color }} />
-                <span className="text-[10px] font-bold uppercase tracking-wider">{label}</span>
+                <span className="text-[10px] font-bold tracking-wider">{label}</span>
               </button>
             );
           })}

@@ -25,6 +25,7 @@ export interface Element {
 }
 
 export const categories = {
+  "hydrogen": "Hydrogen",
   "alkali-metal": "Kim loại kiềm",
   "alkaline-earth": "Kim loại kiềm thổ",
   "transition-metal": "Kim loại chuyển tiếp",
@@ -33,9 +34,8 @@ export const categories = {
   "nonmetal": "Phi kim",
   "halogen": "Halogen",
   "noble-gas": "Khí hiếm",
-  "lanthanide": "Họ Lanthan",
-  "actinide": "Họ Actinid",
-  "radioactive": "Nguyên tố phóng xạ",
+  "lanthanide": "Lanthanides",
+  "actinide": "Actinides",
   "block-s": "Nguyên tố s",
   "block-p": "Nguyên tố p",
   "block-d": "Nguyên tố d",
@@ -389,7 +389,7 @@ for (let i = 1; i <= 118; i++) {
   let isRadioactive = false;
 
   // Category Logic
-  if (i === 1) cat = "nonmetal";
+  if (i === 1) cat = "hydrogen";
   else if (g === 1 && p > 1) cat = "alkali-metal";
   else if (g === 2) cat = "alkaline-earth";
   else if (i >= 57 && i <= 71) cat = "lanthanide";
@@ -452,16 +452,17 @@ for (let i = 1; i <= 118; i++) {
 
 elements.forEach(e => {
   switch (e.category) {
-    case "alkali-metal": e.color = "#FFB3BA"; break;
-    case "alkaline-earth": e.color = "#FFDFBA"; break;
-    case "transition-metal": e.color = "#FF99CC"; break;
-    case "post-transition-metal": e.color = "#BAFFC9"; break;
-    case "metalloid": e.color = "#BAE1FF"; break;
-    case "nonmetal": e.color = "#B9BCFF"; break;
-    case "halogen": e.color = "#F1CBFF"; break;
-    case "noble-gas": e.color = "#FFCC99"; break;
-    case "lanthanide": e.color = "#D4F1F4"; break;
-    case "actinide": e.color = "#A8E6CF"; break;
+    case "hydrogen": e.color = "#FFFF00"; break;
+    case "alkali-metal": e.color = "#FF9999"; break;
+    case "alkaline-earth": e.color = "#FFCC33"; break;
+    case "transition-metal": e.color = "#33CCFF"; break;
+    case "post-transition-metal": e.color = "#FF99FF"; break;
+    case "metalloid": e.color = "#CCCC99"; break;
+    case "nonmetal": e.color = "#33FF33"; break;
+    case "halogen": e.color = "#9999FF"; break;
+    case "noble-gas": e.color = "#C5B1B1"; break;
+    case "lanthanide": e.color = "#CCFFFF"; break;
+    case "actinide": e.color = "#CCFFCC"; break;
   }
 });
 
