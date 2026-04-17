@@ -459,7 +459,7 @@ elements.forEach(e => {
     case "metalloid": e.color = "#BAE1FF"; break;
     case "nonmetal": e.color = "#B9BCFF"; break;
     case "halogen": e.color = "#F1CBFF"; break;
-    case "noble-gas": e.color = "#ECEAE4"; break;
+    case "noble-gas": e.color = "#FFCC99"; break;
     case "lanthanide": e.color = "#D4F1F4"; break;
     case "actinide": e.color = "#A8E6CF"; break;
   }
