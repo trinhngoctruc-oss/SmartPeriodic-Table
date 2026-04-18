@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { Volume2, X, Info, Beaker, GraduationCap, PlayCircle, Trophy, Gamepad2, ArrowRight, CheckCircle2, XCircle, RotateCcw } from 'lucide-react';
+import { Volume2, X, Info, Beaker, GraduationCap, PlayCircle, Trophy, Gamepad2, ArrowRight, CheckCircle2, XCircle, RotateCcw, LayoutGrid } from 'lucide-react';
 import { elements, categories, Element, blockColors } from './data';
 import { generateQuiz, Question } from './quizService';
 
@@ -8,6 +8,8 @@ export default function App() {
   const [selectedElement, setSelectedElement] = useState<Element | null>(null);
   const [isSpeaking, setIsSpeaking] = useState(false);
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
+  const [activePeriod, setActivePeriod] = useState<number | null>(null);
+  const [activeGroup, setActiveGroup] = useState<number | null>(null);
   
   // Quiz State
   const [isQuizOpen, setIsQuizOpen] = useState(false);
@@ -100,9 +102,17 @@ export default function App() {
     for (let p = 1; p <= 7; p++) {
       // Add Period Label at the start of each row
       grid.push(
-        <div key={`period-label-${p}`} className="flex items-center justify-center text-[10px] font-bold text-slate-500 pr-2">
+        <button 
+          key={`period-label-${p}`} 
+          onClick={() => {
+            setActivePeriod(activePeriod === p ? null : p);
+            setActiveGroup(null);
+            setActiveCategory(null);
+          }}
+          className={`flex items-center justify-center text-[10px] font-bold pr-2 transition-colors hover:text-blue-400 ${activePeriod === p ? 'text-blue-400' : 'text-slate-500'}`}
+        >
          Chu kỳ {p}
-        </div>
+        </button>
       );
 
       for (let g = 1; g <= 18; g++) {
@@ -127,10 +137,10 @@ export default function App() {
         const element = elements.find(e => e.period === p && e.group === g && !((e.number >= 57 && e.number <= 71) || (e.number >= 89 && e.number <= 103)));
         
         if (element) {
-          const isDimmed = activeCategory && !(
-            element.category === activeCategory || 
-            element.block === activeCategory || 
-            (activeCategory === 'radioactive' && element.isRadioactive)
+          const isDimmed = (activeCategory || activePeriod || activeGroup) && !(
+            (activeCategory && (element.category === activeCategory || element.block === activeCategory || (activeCategory === 'radioactive' && element.isRadioactive))) ||
+            (activePeriod && element.period === activePeriod) ||
+            (activeGroup && element.group === activeGroup)
           );
           grid.push(
             <motion.div
@@ -166,10 +176,10 @@ export default function App() {
             Lanthanides
           </div>
           {lanthanides.map(element => {
-            const isDimmed = activeCategory && !(
-              element.category === activeCategory || 
-              element.block === activeCategory || 
-              (activeCategory === 'radioactive' && element.isRadioactive)
+            const isDimmed = (activeCategory || activePeriod || activeGroup) && !(
+              (activeCategory && (element.category === activeCategory || element.block === activeCategory || (activeCategory === 'radioactive' && element.isRadioactive))) ||
+              (activePeriod && element.period === activePeriod) ||
+              (activeGroup && element.group === activeGroup)
             );
             return (
               <motion.div
@@ -191,10 +201,10 @@ export default function App() {
             Actinides
           </div>
           {actinides.map(element => {
-            const isDimmed = activeCategory && !(
-              element.category === activeCategory || 
-              element.block === activeCategory || 
-              (activeCategory === 'radioactive' && element.isRadioactive)
+            const isDimmed = (activeCategory || activePeriod || activeGroup) && !(
+              (activeCategory && (element.category === activeCategory || element.block === activeCategory || (activeCategory === 'radioactive' && element.isRadioactive))) ||
+              (activePeriod && element.period === activePeriod) ||
+              (activeGroup && element.group === activeGroup)
             );
             return (
               <motion.div
@@ -223,10 +233,10 @@ export default function App() {
         <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
           <div className="flex items-center gap-3">
             <div className="p-2 bg-blue-600 rounded-lg">
-              <Beaker className="w-6 h-6 text-white" />
+              <LayoutGrid className="w-6 h-6 text-white" />
             </div>
-            <h1 className="text-2xl sm:text-3xl font-bold tracking-tight bg-gradient-to-r from-blue-400 to-teal-400 bg-clip-text text-transparent">
-              BẢNG TUẦN HOÀN THÔNG MINH
+            <h1 className="text-xl sm:text-2xl font-bold tracking-tight bg-gradient-to-r from-blue-400 to-teal-400 bg-clip-text text-transparent">
+              BẢNG TUẦN HOÀN THÔNG MINH - SMART PERIODIC TABLE
             </h1>
           </div>
           
@@ -267,9 +277,13 @@ export default function App() {
               </button>
             );
           })}
-          {activeCategory && (
+          {(activeCategory || activePeriod || activeGroup) && (
             <button
-              onClick={() => setActiveCategory(null)}
+              onClick={() => {
+                setActiveCategory(null);
+                setActivePeriod(null);
+                setActiveGroup(null);
+              }}
               className="text-xs font-bold text-blue-400 hover:text-blue-300 underline underline-offset-4 px-2"
             >
               Xóa lọc
@@ -284,11 +298,22 @@ export default function App() {
             <div className="w-12 h-8" />
             
             {/* Group Numbers */}
-            {Array.from({ length: 18 }).map((_, i) => (
-              <div key={`group-${i + 1}`} className="text-center text-[10px] font-bold text-slate-500 pb-2">
-                Nhóm {groupRomanMapping[i + 1]}
-              </div>
-            ))}
+            {Array.from({ length: 18 }).map((_, i) => {
+              const groupNum = i + 1;
+              return (
+                <button 
+                  key={`group-${groupNum}`} 
+                  onClick={() => {
+                    setActiveGroup(activeGroup === groupNum ? null : groupNum);
+                    setActivePeriod(null);
+                    setActiveCategory(null);
+                  }}
+                  className={`text-center text-[10px] font-bold pb-2 transition-colors hover:text-blue-400 ${activeGroup === groupNum ? 'text-blue-400' : 'text-slate-500'}`}
+                >
+                  Nhóm {groupRomanMapping[groupNum]}
+                </button>
+              );
+            })}
             
             {/* The Grid */}
             {renderGrid()}
