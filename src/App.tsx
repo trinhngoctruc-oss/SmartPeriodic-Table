@@ -120,16 +120,16 @@ export default function App() {
         // Special cases for Lanthanides (57-71) and Actinides (89-103) placeholders in main table
         if (p === 6 && g === 3) {
           grid.push(
-            <div key="lanthanides-placeholder" className="flex items-center justify-center border border-slate-700 rounded-md bg-slate-800/50 text-[8px] text-slate-500 font-bold">
-            <center> 57-71 Lanthanides</center>
+            <div key="lanthanides-placeholder" className="flex items-center justify-center border border-slate-700 rounded-md bg-slate-800/50 text-[8px] text-slate-500 font-bold p-1 text-center">
+             57-71 <br/>Họ Lanthanides
             </div>
           );
           continue;
         }
         if (p === 7 && g === 3) {
           grid.push(
-            <div key="actinides-placeholder" className="flex items-center justify-center border border-slate-700 rounded-md bg-slate-800/50 text-[10px] text-slate-500 font-bold">
-              <center>89-103 Actinides </center>
+            <div key="actinides-placeholder" className="flex items-center justify-center border border-slate-700 rounded-md bg-slate-800/50 text-[8px] text-slate-500 font-bold p-1 text-center">
+              89-103 <br/>Họ Actinides
             </div>
           );
           continue;
@@ -186,7 +186,7 @@ export default function App() {
       <div className="mt-8 space-y-2">
         <div className="flex gap-1 ml-[calc((100%/19)*3)] relative">
           <div className="absolute -left-10 top-1/2 -translate-y-1/2 [writing-mode:vertical-lr] rotate-180 text-[10px] font-bold text-blue-400 uppercase tracking-widest whitespace-nowrap">
-            Lanthanides
+            Họ Lanthanides
           </div>
           {lanthanides.map(element => {
             const isSearchMatch = searchQuery && (
@@ -223,7 +223,7 @@ export default function App() {
         </div>
         <div className="flex gap-1 ml-[calc((100%/19)*3)] relative">
           <div className="absolute -left-10 top-1/2 -translate-y-1/2 [writing-mode:vertical-lr] rotate-180 text-[10px] font-bold text-emerald-400 uppercase tracking-widest whitespace-nowrap">
-            Actinides
+            Họ Actinides
           </div>
           {actinides.map(element => {
             const isSearchMatch = searchQuery && (

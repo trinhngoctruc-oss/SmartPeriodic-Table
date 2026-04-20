@@ -25,17 +25,13 @@ export interface Element {
 }
 
 export const categories = {
-  "hydrogen": "Hydrogen",
+  "transition-metal": "Kim loại",
+  "noble-gas": "Khí hiếm",
   "alkali-metal": "Kim loại kiềm",
   "alkaline-earth": "Kim loại kiềm thổ",
-  "transition-metal": "Kim loại chuyển tiếp",
-  "post-transition-metal": "Kim loại khác",
-  "metalloid": "Á kim",
-  "nonmetal": "Phi kim",
-  "halogen": "Halogen",
-  "noble-gas": "Khí hiếm",
-  "lanthanide": "Lanthanides",
-  "actinide": "Actinides",
+  "halogen": "Nhóm Halogen",
+  "actinide": "Họ Actinides",
+  "lanthanide": "Họ Lanthanides",
   "block-s": "Nguyên tố s",
   "block-p": "Nguyên tố p",
   "block-d": "Nguyên tố d",
