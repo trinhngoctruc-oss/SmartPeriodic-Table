@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { Volume2, X, Info, Beaker, GraduationCap, PlayCircle, Trophy, Gamepad2, ArrowRight, CheckCircle2, XCircle, RotateCcw, LayoutGrid } from 'lucide-react';
+import { Volume2, X, Info, Beaker, GraduationCap, PlayCircle, Trophy, Gamepad2, ArrowRight, CheckCircle2, XCircle, RotateCcw, LayoutGrid, Search } from 'lucide-react';
 import { elements, categories, Element, blockColors } from './data';
 import { generateQuiz, Question } from './quizService';
 
@@ -10,6 +10,7 @@ export default function App() {
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
   const [activePeriod, setActivePeriod] = useState<number | null>(null);
   const [activeGroup, setActiveGroup] = useState<number | null>(null);
+  const [searchQuery, setSearchQuery] = useState('');
   
   // Quiz State
   const [isQuizOpen, setIsQuizOpen] = useState(false);
@@ -137,17 +138,29 @@ export default function App() {
         const element = elements.find(e => e.period === p && e.group === g && !((e.number >= 57 && e.number <= 71) || (e.number >= 89 && e.number <= 103)));
         
         if (element) {
-          const isDimmed = (activeCategory || activePeriod || activeGroup) && !(
-            (activeCategory && (element.category === activeCategory || element.block === activeCategory || (activeCategory === 'radioactive' && element.isRadioactive))) ||
-            (activePeriod && element.period === activePeriod) ||
-            (activeGroup && element.group === activeGroup)
+          const isSearchMatch = searchQuery && (
+            element.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
+            element.symbol.toLowerCase().includes(searchQuery.toLowerCase()) || 
+            element.number.toString().includes(searchQuery)
           );
+          const isFilterMatch = (
+            (!activeCategory || (element.category === activeCategory || element.block === activeCategory || (activeCategory === 'radioactive' && element.isRadioactive))) &&
+            (!activePeriod || element.period === activePeriod) &&
+            (!activeGroup || element.group === activeGroup)
+          );
+          
+          const hasActiveFilters = activeCategory || activePeriod || activeGroup || searchQuery;
+          const isDimmed = hasActiveFilters && !(
+            (!searchQuery || isSearchMatch) && 
+            isFilterMatch
+          );
+
           grid.push(
             <motion.div
               key={element.number}
               layoutId={`element-${element.number}`}
               onClick={() => handleElementClick(element)}
-              className={`relative flex flex-col items-center justify-center p-1 border border-slate-400/30 rounded-md cursor-pointer hover:scale-110 transition-all shadow-md text-gray-900 w-full aspect-square sm:h-20 ${isDimmed ? 'opacity-20 grayscale scale-95' : 'opacity-100'}`}
+              className={`relative flex flex-col items-center justify-center p-1 border border-slate-400/30 rounded-md cursor-pointer hover:scale-110 transition-all shadow-md text-gray-900 w-full aspect-square sm:h-20 ${isDimmed ? 'opacity-20 grayscale scale-95' : 'opacity-100 ring-2 ring-blue-400/0 shadow-[0_0_15px_rgba(96,165,250,0)]'} ${!isDimmed && searchQuery ? 'ring-blue-400 ring-offset-2 ring-offset-slate-900 shadow-[0_0_20px_rgba(96,165,250,0.5)] z-10' : ''}`}
               style={{ backgroundColor: element.color }}
               whileHover={{ zIndex: 10 }}
             >
@@ -176,16 +189,28 @@ export default function App() {
             Lanthanides
           </div>
           {lanthanides.map(element => {
-            const isDimmed = (activeCategory || activePeriod || activeGroup) && !(
-              (activeCategory && (element.category === activeCategory || element.block === activeCategory || (activeCategory === 'radioactive' && element.isRadioactive))) ||
-              (activePeriod && element.period === activePeriod) ||
-              (activeGroup && element.group === activeGroup)
+            const isSearchMatch = searchQuery && (
+              element.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
+              element.symbol.toLowerCase().includes(searchQuery.toLowerCase()) || 
+              element.number.toString().includes(searchQuery)
             );
+            const isFilterMatch = (
+              (!activeCategory || (element.category === activeCategory || element.block === activeCategory || (activeCategory === 'radioactive' && element.isRadioactive))) &&
+              (!activePeriod || element.period === activePeriod) &&
+              (!activeGroup || element.group === activeGroup)
+            );
+            
+            const hasActiveFilters = activeCategory || activePeriod || activeGroup || searchQuery;
+            const isDimmed = hasActiveFilters && !(
+              (!searchQuery || isSearchMatch) && 
+              isFilterMatch
+            );
+
             return (
               <motion.div
                 key={element.number}
                 onClick={() => handleElementClick(element)}
-                className={`relative flex flex-col items-center justify-center p-1 border border-slate-400/30 rounded-md cursor-pointer hover:scale-110 transition-all shadow-md text-gray-900 w-[calc(100%/19-4px)] h-20 ${isDimmed ? 'opacity-20 grayscale scale-95' : 'opacity-100'}`}
+                className={`relative flex flex-col items-center justify-center p-1 border border-slate-400/30 rounded-md cursor-pointer hover:scale-110 transition-all shadow-md text-gray-900 w-[calc(100%/19-4px)] h-20 ${isDimmed ? 'opacity-20 grayscale scale-95' : 'opacity-100 ring-2 ring-blue-400/0 shadow-[0_0_15px_rgba(96,165,250,0)]'} ${!isDimmed && searchQuery ? 'ring-blue-400 ring-offset-2 ring-offset-slate-900 shadow-[0_0_20px_rgba(96,165,250,0.5)] z-10' : ''}`}
                 style={{ backgroundColor: element.color }}
               >
                 <span className="absolute top-0.5 left-1 text-[8px] sm:text-[10px] font-bold">{element.number}</span>
@@ -201,16 +226,28 @@ export default function App() {
             Actinides
           </div>
           {actinides.map(element => {
-            const isDimmed = (activeCategory || activePeriod || activeGroup) && !(
-              (activeCategory && (element.category === activeCategory || element.block === activeCategory || (activeCategory === 'radioactive' && element.isRadioactive))) ||
-              (activePeriod && element.period === activePeriod) ||
-              (activeGroup && element.group === activeGroup)
+            const isSearchMatch = searchQuery && (
+              element.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
+              element.symbol.toLowerCase().includes(searchQuery.toLowerCase()) || 
+              element.number.toString().includes(searchQuery)
             );
+            const isFilterMatch = (
+              (!activeCategory || (element.category === activeCategory || element.block === activeCategory || (activeCategory === 'radioactive' && element.isRadioactive))) &&
+              (!activePeriod || element.period === activePeriod) &&
+              (!activeGroup || element.group === activeGroup)
+            );
+            
+            const hasActiveFilters = activeCategory || activePeriod || activeGroup || searchQuery;
+            const isDimmed = hasActiveFilters && !(
+              (!searchQuery || isSearchMatch) && 
+              isFilterMatch
+            );
+
             return (
               <motion.div
                 key={element.number}
                 onClick={() => handleElementClick(element)}
-                className={`relative flex flex-col items-center justify-center p-1 border border-slate-400/30 rounded-md cursor-pointer hover:scale-110 transition-all shadow-md text-gray-900 w-[calc(100%/19-4px)] h-20 ${isDimmed ? 'opacity-20 grayscale scale-95' : 'opacity-100'}`}
+                className={`relative flex flex-col items-center justify-center p-1 border border-slate-400/30 rounded-md cursor-pointer hover:scale-110 transition-all shadow-md text-gray-900 w-[calc(100%/19-4px)] h-20 ${isDimmed ? 'opacity-20 grayscale scale-95' : 'opacity-100 ring-2 ring-blue-400/0 shadow-[0_0_15px_rgba(96,165,250,0)]'} ${!isDimmed && searchQuery ? 'ring-blue-400 ring-offset-2 ring-offset-slate-900 shadow-[0_0_20px_rgba(96,165,250,0.5)] z-10' : ''}`}
                 style={{ backgroundColor: element.color }}
               >
                 <span className="absolute top-0.5 left-1 text-[8px] sm:text-[10px] font-bold">{element.number}</span>
@@ -261,6 +298,28 @@ export default function App() {
       </header>
 
       <main className="max-w-[1400px] mx-auto p-4 sm:p-8">
+        {/* Search Bar */}
+        <div className="max-w-2xl mx-auto mb-8 relative group">
+          <div className="absolute inset-y-0 left-4 flex items-center pointer-events-none text-slate-400 group-focus-within:text-blue-400 transition-colors">
+            <Search className="w-5 h-5" />
+          </div>
+          <input
+            type="text"
+            placeholder="Tìm kiếm theo tên, ký hiệu hoặc số nguyên tử..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="w-full bg-slate-800/50 border border-slate-700 rounded-2xl py-4 pl-12 pr-12 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 transition-all placeholder:text-slate-500 text-slate-100 backdrop-blur-sm shadow-lg"
+          />
+          {searchQuery && (
+            <button
+              onClick={() => setSearchQuery('')}
+              className="absolute inset-y-0 right-4 flex items-center text-slate-400 hover:text-white transition-colors"
+            >
+              <X className="w-5 h-5" />
+            </button>
+          )}
+        </div>
+
         {/* Legend */}
         <div className="mb-8 flex flex-wrap gap-2 justify-center max-w-5xl mx-auto p-4 bg-slate-800/20 rounded-3xl border border-slate-700/50 backdrop-blur-sm">
           {Object.entries(categories).map(([key, label]) => {
@@ -277,12 +336,13 @@ export default function App() {
               </button>
             );
           })}
-          {(activeCategory || activePeriod || activeGroup) && (
+          {(activeCategory || activePeriod || activeGroup || searchQuery) && (
             <button
               onClick={() => {
                 setActiveCategory(null);
                 setActivePeriod(null);
                 setActiveGroup(null);
+                setSearchQuery('');
               }}
               className="text-xs font-bold text-blue-400 hover:text-blue-300 underline underline-offset-4 px-2"
             >
