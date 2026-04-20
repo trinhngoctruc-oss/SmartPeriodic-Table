@@ -25,7 +25,9 @@ export interface Element {
 }
 
 export const categories = {
-  "transition-metal": "Kim loại",
+  "post-transition-metal": "Kim loại",
+  "transition-metal": "Kim loại chuyển tiếp",
+  "nonmetal": "Phi kim",
   "noble-gas": "Khí hiếm",
   "alkali-metal": "Kim loại kiềm",
   "alkaline-earth": "Kim loại kiềm thổ",
