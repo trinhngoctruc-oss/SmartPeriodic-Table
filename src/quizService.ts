@@ -69,14 +69,16 @@ export const generateQuiz = (elements: Element[], count: number = 15): Question[
       {
         text: `Nguyên tố nào có tính chất đặc trưng là: "${el.characteristics}"?`,
         correct: el.name,
-        getWrong: () => first20.filter(e => e.number !== el.number).sort(() => 0.5 - Math.random()).slice(0, 3).map(e => e.name)
+        getWrong: () => first20.filter(e => e.number !== el.number).sort(() => 0.5 - Math.random()).slice(0, 3).map(e => e.name),
+        // Filter out if it's a generic "Khí không màu" description
+        disabled: el.characteristics.toLowerCase().includes('khí không màu')
       },
       {
         text: `Khối lượng nguyên tử của nguyên tố "${el.name}" xấp xỉ bao nhiêu?`,
         correct: `${el.atomicMass} u`,
         getWrong: () => first20.filter(e => e.number !== el.number).sort(() => 0.5 - Math.random()).slice(0, 3).map(e => `${e.atomicMass} u`)
       }
-    ];
+    ].filter(q => !('disabled' in q && q.disabled));
 
     const qType = questionTypes[Math.floor(Math.random() * questionTypes.length)];
     const options = [qType.correct, ...qType.getWrong()].sort(() => 0.5 - Math.random());
