@@ -1,8 +1,11 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { Volume2, X, Info, Beaker, GraduationCap, PlayCircle, Trophy, Gamepad2, ArrowRight, CheckCircle2, XCircle, RotateCcw, LayoutGrid, Search } from 'lucide-react';
+import { Volume2, X, Info, Beaker, GraduationCap, PlayCircle, Trophy, Gamepad2, ArrowRight, CheckCircle2, XCircle, RotateCcw, LayoutGrid, Search, Users, Copy, Loader2, UserCircle2 } from 'lucide-react';
 import { elements, categories, Element, blockColors } from './data';
 import { generateQuiz, Question } from './quizService';
+import { useAuth, registerUser, createRoom, joinRoom, updateScore, finishGame, GameRoom, Player } from './lib/gameService';
+import { doc, onSnapshot, getDoc } from 'firebase/firestore';
+import { db } from './lib/firebase';
 
 export default function App() {
   const [selectedElement, setSelectedElement] = useState<Element | null>(null);
@@ -12,6 +15,18 @@ export default function App() {
   const [activeGroup, setActiveGroup] = useState<number | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   
+  // Auth & Multiplayer State
+  const { user, authError } = useAuth();
+  const [displayName, setDisplayName] = useState(localStorage.getItem('periodic_app_display_name') || '');
+  const [isGameMenuOpen, setIsGameMenuOpen] = useState(false);
+  const [gameMode, setGameMode] = useState<'single' | 'multi' | null>(null);
+  const [roomCode, setRoomCode] = useState('');
+  const [room, setRoom] = useState<GameRoom | null>(null);
+  const [isJoining, setIsJoining] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [timeLeft, setTimeLeft] = useState(0);
+  const timerRef = useRef<NodeJS.Timeout | null>(null);
+
   // Quiz State
   const [isQuizOpen, setIsQuizOpen] = useState(false);
   const [quizQuestions, setQuizQuestions] = useState<Question[]>([]);
@@ -43,12 +58,111 @@ export default function App() {
 
   const nextQuestion = () => {
     if (currentQuestionIndex < quizQuestions.length - 1) {
-      setCurrentQuestionIndex(prev => prev + 1);
+      const nextIndex = currentQuestionIndex + 1;
+      setCurrentQuestionIndex(nextIndex);
       setSelectedAnswer(null);
       setIsAnswered(false);
     } else {
-      setShowResult(true);
+      if (gameMode === 'multi' && room) {
+        // Just wait for timer or other player in multi
+      } else {
+        setShowResult(true);
+      }
     }
+  };
+
+  useEffect(() => {
+    if (gameMode === 'multi' && room && user) {
+      updateScore(room.roomId, user.uid, score);
+    }
+  }, [score, gameMode, room, user]);
+
+  useEffect(() => {
+    let unsub: (() => void) | null = null;
+    if (roomCode && gameMode === 'multi') {
+      unsub = onSnapshot(doc(db, 'rooms', roomCode), (snap) => {
+        if (snap.exists()) {
+          const roomData = snap.data() as GameRoom;
+          setRoom(roomData);
+
+          if (roomData.status === 'playing' && roomData.startTime && !timerRef.current) {
+            const now = Date.now();
+            const elapsed = Math.floor((now - roomData.startTime) / 1000);
+            const remaining = Math.max(0, roomData.duration - elapsed);
+            setTimeLeft(remaining);
+            
+            timerRef.current = setInterval(() => {
+              setTimeLeft(prev => {
+                if (prev <= 1) {
+                  clearInterval(timerRef.current!);
+                  timerRef.current = null;
+                  setShowResult(true);
+                  finishGame(roomData.roomId);
+                  return 0;
+                }
+                return prev - 1;
+              });
+            }, 1000);
+          }
+
+          if (roomData.status === 'finished') {
+            setShowResult(true);
+            if (timerRef.current) {
+              clearInterval(timerRef.current);
+              timerRef.current = null;
+            }
+          }
+        }
+      }, (err) => {
+        console.error("Room Snapshot Error:", err);
+        if (err.code === 'permission-denied') {
+          setError("Bạn không có quyền truy cập phòng này hoặc quyền hạn của bạn đã bị từ chối.");
+        }
+      });
+    }
+    return () => {
+      if (unsub) unsub();
+      if (timerRef.current) clearInterval(timerRef.current);
+    };
+  }, [roomCode, gameMode]);
+
+  const handleCreateRoom = async () => {
+    if (!user || !displayName) return;
+    try {
+      setError(null);
+      const questions = generateQuiz(elements, 15);
+      const code = await createRoom(user.uid, displayName, questions);
+      setRoomCode(code);
+      setQuizQuestions(questions);
+    } catch (err: any) {
+      setError(err.message);
+    }
+  };
+
+  const handleJoinRoom = async (code: string) => {
+    if (!user || !displayName || !code) return;
+    setIsJoining(true);
+    setError(null);
+    try {
+      await joinRoom(code.toUpperCase(), user.uid, displayName);
+      const snap = await getDoc(doc(db, 'rooms', code.toUpperCase()));
+      if (snap.exists()) {
+        const data = snap.data() as GameRoom;
+        setQuizQuestions(data.questions as Question[]);
+        setRoomCode(code.toUpperCase());
+        setRoom(data);
+      }
+    } catch (err: any) {
+      setError(err.message);
+    } finally {
+      setIsJoining(false);
+    }
+  };
+
+  const formatTime = (seconds: number) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins}:${secs.toString().padStart(2, '0')}`;
   };
 
   const speak = (element: Element) => {
@@ -292,7 +406,7 @@ export default function App() {
             <motion.button
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
-              onClick={startQuiz}
+              onClick={() => setIsGameMenuOpen(true)}
               className="relative group flex items-center gap-2 px-6 py-2.5 bg-gradient-to-r from-amber-500 to-orange-600 rounded-full font-bold text-white shadow-[0_0_20px_rgba(245,158,11,0.3)] hover:shadow-[0_0_30px_rgba(245,158,11,0.5)] transition-all"
             >
               <Gamepad2 className="w-5 h-5" />
@@ -619,7 +733,104 @@ export default function App() {
         )}
       </AnimatePresence>
 
-      {/* Quiz Modal */}
+      {/* Game Choice Menu */}
+      <AnimatePresence>
+        {isGameMenuOpen && (
+          <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-slate-950/90 backdrop-blur-md">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.9 }}
+              className="bg-slate-900 border border-slate-700 p-8 rounded-3xl max-w-md w-full shadow-2xl relative"
+            >
+              <button 
+                onClick={() => setIsGameMenuOpen(false)}
+                className="absolute top-4 right-4 p-2 text-slate-500 hover:text-white transition-colors"
+              >
+                <X className="w-6 h-6" />
+              </button>
+
+              <div className="text-center mb-8">
+                <div className="w-16 h-16 bg-blue-500/20 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                  <Gamepad2 className="w-8 h-8 text-blue-400" />
+                </div>
+                <h2 className="text-2xl font-bold text-white">Chọn chế độ chơi</h2>
+                <p className="text-slate-400">Thử thách kiến thức hóa học của bạn</p>
+              </div>
+
+              {!displayName ? (
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-medium text-slate-400 mb-2">Nhập tên của bạn để bắt đầu</label>
+                    <input 
+                      type="text"
+                      placeholder="Tên của bạn..."
+                      className="w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-3 text-white focus:ring-2 focus:ring-blue-500 outline-none"
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') {
+                          const val = (e.target as HTMLInputElement).value.trim();
+                          if (val && user) {
+                            setDisplayName(val);
+                            registerUser(user.uid, val);
+                          }
+                        }
+                      }}
+                    />
+                  </div>
+                  <p className="text-[10px] text-slate-500">Tên này sẽ hiển thị thi đấu với người khác</p>
+                </div>
+              ) : (
+                <div className="grid gap-4">
+                  <button 
+                    onClick={() => {
+                      setGameMode('single');
+                      setIsGameMenuOpen(false);
+                      startQuiz();
+                    }}
+                    className="flex flex-col items-start gap-1 p-6 bg-slate-800/50 hover:bg-slate-800 border border-slate-700 rounded-2xl transition-all group"
+                  >
+                    <div className="flex items-center gap-2 text-white font-bold">
+                      <UserCircle2 className="w-5 h-5 text-blue-400" />
+                      <span>Chơi đơn</span>
+                    </div>
+                    <span className="text-sm text-slate-400">Trả lời 15 câu hỏi trong thời gian sớm nhất</span>
+                  </button>
+
+                  <button 
+                    onClick={() => {
+                      setGameMode('multi');
+                      setIsGameMenuOpen(false);
+                      setIsQuizOpen(true); // Open the lobby/MP UI
+                    }}
+                    className="flex flex-col items-start gap-1 p-6 bg-blue-600/10 hover:bg-blue-600/20 border border-blue-500/30 rounded-2xl transition-all"
+                  >
+                    <div className="flex items-center gap-2 text-blue-400 font-bold">
+                      <Users className="w-5 h-5" />
+                      <span>Chơi đối kháng</span>
+                    </div>
+                    <span className="text-sm text-slate-400">Tạo phòng và thách đấu với bạn bè qua mã phòng</span>
+                  </button>
+
+                  <div className="pt-4 flex items-center justify-between text-xs text-slate-500 border-t border-slate-800">
+                    <span className="flex items-center gap-1">
+                      <UserCircle2 className="w-3 h-3" />
+                      Đang đăng nhập: {displayName}
+                    </span>
+                    <button 
+                      onClick={() => setDisplayName('')}
+                      className="hover:text-white transition-colors"
+                    >
+                      Đổi tên
+                    </button>
+                  </div>
+                </div>
+              )}
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* Quiz / Multiplayer Lobby Modal */}
       <AnimatePresence>
         {isQuizOpen && (
           <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-slate-950/95 backdrop-blur-xl">
@@ -629,7 +840,120 @@ export default function App() {
               exit={{ opacity: 0, y: 50 }}
               className="bg-slate-900 border border-slate-700 rounded-3xl overflow-hidden max-w-2xl w-full shadow-2xl relative"
             >
-              {!showResult ? (
+              {gameMode === 'multi' && !room ? (
+                <div className="p-12 text-center">
+                  <div className="w-16 h-16 bg-blue-600/20 rounded-2xl flex items-center justify-center mx-auto mb-6">
+                    <Users className="w-8 h-8 text-blue-400" />
+                  </div>
+                  <h2 className="text-3xl font-bold text-white mb-2">Chế độ Đối kháng</h2>
+                  <p className="text-slate-400 mb-8">Tạo phòng mới hoặc nhập mã để tham gia</p>
+
+                  {authError && (
+                    <div className="mb-6 p-4 bg-red-500/10 border border-red-500/30 rounded-2xl text-red-400 text-sm">
+                      <p className="font-bold mb-1">Lỗi kết nối:</p>
+                      <p>{authError}</p>
+                    </div>
+                  )}
+
+                  <div className="grid grid-cols-1 gap-6">
+                    <div className="bg-slate-800/50 p-6 rounded-2xl border border-slate-700">
+                      <h3 className="font-bold text-white mb-4">Bạn có mã phòng?</h3>
+                      <div className="flex gap-2">
+                        <input 
+                          type="text"
+                          placeholder="MÃ PHÒNG"
+                          className="flex-1 bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-white font-mono uppercase text-center"
+                          value={roomCode}
+                          onChange={(e) => setRoomCode(e.target.value.toUpperCase())}
+                        />
+                        <button 
+                          onClick={() => handleJoinRoom(roomCode)}
+                          disabled={!roomCode || isJoining}
+                          className="px-6 py-3 bg-blue-600 hover:bg-blue-500 disabled:opacity-50 disabled:cursor-not-allowed text-white rounded-xl font-bold transition-all"
+                        >
+                          {isJoining ? <Loader2 className="w-5 h-5 animate-spin" /> : 'VÀO'}
+                        </button>
+                      </div>
+                      {error && <p className="text-red-400 text-xs mt-2">{error}</p>}
+                    </div>
+
+                    <div className="relative">
+                      <div className="absolute inset-0 flex items-center"><div className="w-full border-t border-slate-800"></div></div>
+                      <div className="relative flex justify-center text-xs uppercase"><span className="bg-slate-900 px-2 text-slate-500">Hoặc</span></div>
+                    </div>
+
+                    <button 
+                      onClick={handleCreateRoom}
+                      className="w-full py-4 bg-slate-800 hover:bg-slate-700 text-white rounded-2xl font-bold transition-all border border-slate-700 flex items-center justify-center gap-2"
+                    >
+                      <PlayCircle className="w-5 h-5 text-blue-400" />
+                      Tạo phòng mới
+                    </button>
+                  </div>
+
+                  <button 
+                    onClick={() => {
+                      setIsQuizOpen(false);
+                      setGameMode(null);
+                    }}
+                    className="mt-8 text-slate-500 hover:text-white transition-colors"
+                  >
+                    Quay lại
+                  </button>
+                </div>
+              ) : gameMode === 'multi' && room?.status === 'waiting' ? (
+                <div className="p-12 text-center">
+                  <div className="w-20 h-20 bg-blue-600/20 rounded-full flex items-center justify-center mx-auto mb-6">
+                    <Loader2 className="w-10 h-10 text-blue-400 animate-spin" />
+                  </div>
+                  <h2 className="text-2xl font-bold text-white mb-1">Đang đợi đối thủ...</h2>
+                  <p className="text-slate-400 mb-8">Chia sẻ mã bên dưới để mời bạn bè</p>
+
+                  <div className="bg-slate-800 p-6 rounded-3xl border border-slate-700 mb-8">
+                    <div className="text-xs text-slate-500 uppercase tracking-widest mb-1 font-bold">Mã phòng</div>
+                    <div className="text-5xl font-black text-blue-400 font-mono tracking-widest flex items-center justify-center gap-4">
+                      {room.roomId}
+                      <button 
+                        onClick={() => {
+                          navigator.clipboard.writeText(room.roomId);
+                          alert('Đã chép mã phòng!');
+                        }}
+                        className="p-2 hover:bg-slate-700 rounded-lg text-slate-400"
+                      >
+                        <Copy className="w-5 h-5" />
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center justify-center gap-8 mb-8">
+                    <div className="flex flex-col items-center gap-2">
+                      <div className="w-12 h-12 bg-blue-500 rounded-full flex items-center justify-center text-white font-bold ring-4 ring-blue-500/20">
+                        {displayName[0]}
+                      </div>
+                      <span className="text-sm font-bold text-white">{displayName}</span>
+                      <span className="text-[10px] text-green-400 font-bold uppercase">Sẵn sàng</span>
+                    </div>
+                    <div className="h-px w-12 bg-slate-800" />
+                    <div className="flex flex-col items-center gap-2">
+                      <div className="w-12 h-12 bg-slate-800 rounded-full flex items-center justify-center text-slate-600 border border-slate-700 border-dashed">
+                        ?
+                      </div>
+                      <span className="text-sm font-bold text-slate-600">Đang đợi...</span>
+                    </div>
+                  </div>
+
+                  <button 
+                    onClick={() => {
+                      setIsQuizOpen(false);
+                      setRoomCode('');
+                      setRoom(null);
+                    }}
+                    className="text-slate-500 hover:text-white transition-colors"
+                  >
+                    Hủy phòng
+                  </button>
+                </div>
+              ) : !showResult ? (
                 <div className="p-8">
                   <div className="flex items-center justify-between mb-8">
                     <div className="flex items-center gap-3">
@@ -638,6 +962,12 @@ export default function App() {
                       </div>
                       <span className="font-bold text-slate-300">Câu {currentQuestionIndex + 1} / 15</span>
                     </div>
+                    {gameMode === 'multi' && (
+                      <div className="flex items-center gap-4 bg-slate-800/80 px-4 py-2 rounded-xl border border-slate-700">
+                         <Loader2 className="w-4 h-4 text-blue-400 animate-spin" />
+                         <span className="font-mono font-bold text-blue-400">{formatTime(timeLeft)}</span>
+                      </div>
+                    )}
                     <button
                       onClick={() => setIsQuizOpen(false)}
                       className="p-2 hover:bg-slate-800 rounded-full text-slate-500 transition-colors"
@@ -645,6 +975,19 @@ export default function App() {
                       <X className="w-6 h-6" />
                     </button>
                   </div>
+
+                  {gameMode === 'multi' && room && (
+                    <div className="grid grid-cols-2 gap-4 mb-6">
+                      {(Object.values(room.players) as Player[]).map(p => (
+                        <div key={p.userId} className={`p-3 rounded-xl border ${p.userId === user?.uid ? 'bg-blue-600/10 border-blue-500/30' : 'bg-slate-800/40 border-slate-700'}`}>
+                          <div className="flex justify-between items-center">
+                            <span className="text-xs font-bold text-slate-400 uppercase truncate">{p.name} {p.userId === user?.uid && '(Bạn)'}</span>
+                            <span className="text-xl font-black text-blue-400">{p.score}</span>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
 
                   <div className="mb-8">
                     <h3 className="text-xl sm:text-2xl font-bold text-white leading-tight">
@@ -696,26 +1039,70 @@ export default function App() {
                 </div>
               ) : (
                 <div className="p-12 text-center">
-                  <div className="w-24 h-24 bg-amber-500/20 rounded-full flex items-center justify-center mx-auto mb-6">
-                    <Trophy className="w-12 h-12 text-amber-500" />
-                  </div>
-                  <h2 className="text-3xl font-bold text-white mb-2">Hoàn thành thử thách!</h2>
-                  <p className="text-slate-400 mb-8">Bạn đã trả lời đúng được</p>
-                  
-                  <div className="text-6xl font-black text-blue-400 mb-8">
-                    {score} <span className="text-2xl text-slate-500">/ 15</span>
-                  </div>
+                  {gameMode === 'multi' && room ? (() => {
+                    const players = Object.values(room.players) as Player[];
+                    const myPlayer = players.find(p => p.userId === user?.uid);
+                    const opponent = players.find(p => p.userId !== user?.uid);
+                    const isWin = opponent ? (myPlayer?.score || 0) > (opponent.score || 0) : true;
+                    const isDraw = opponent ? (myPlayer?.score || 0) === (opponent.score || 0) : false;
+
+                    return (
+                      <>
+                        <div className="w-24 h-24 bg-amber-500/20 rounded-full flex items-center justify-center mx-auto mb-6">
+                          {isWin ? <Trophy className="w-12 h-12 text-amber-500" /> : <XCircle className="w-12 h-12 text-red-500" />}
+                        </div>
+                        <h2 className="text-3xl font-bold text-white mb-2">
+                          {isWin ? 'Chúc mừng bạn đã thắng!' : isDraw ? 'Kết quả Hòa!' : 'Tiếc quá, bạn đã thua cuộc!'}
+                        </h2>
+                        
+                        <div className="grid grid-cols-2 gap-4 my-8 max-w-sm mx-auto">
+                           <div className="p-4 bg-blue-600/10 rounded-2xl border border-blue-500/30">
+                              <div className="text-[10px] uppercase text-slate-400 mb-1 font-bold">Bạn</div>
+                              <div className="text-4xl font-black text-white">{myPlayer?.score}</div>
+                           </div>
+                           <div className="p-4 bg-slate-800 rounded-2xl border border-slate-700">
+                              <div className="text-[10px] uppercase text-slate-400 mb-1 font-bold">{opponent?.name || 'Đối thủ'}</div>
+                              <div className="text-4xl font-black text-slate-200">{opponent?.score || 0}</div>
+                           </div>
+                        </div>
+                      </>
+                    );
+                  })() : (
+                    <>
+                      <div className="w-24 h-24 bg-amber-500/20 rounded-full flex items-center justify-center mx-auto mb-6">
+                        <Trophy className="w-12 h-12 text-amber-500" />
+                      </div>
+                      <h2 className="text-3xl font-bold text-white mb-2">Hoàn thành thử thách!</h2>
+                      <p className="text-slate-400 mb-8">Bạn đã trả lời đúng được</p>
+                      
+                      <div className="text-6xl font-black text-blue-400 mb-8">
+                        {score} <span className="text-2xl text-slate-500">/ 15</span>
+                      </div>
+                    </>
+                  )}
 
                   <div className="flex flex-col sm:flex-row gap-4 justify-center">
                     <button
-                      onClick={startQuiz}
+                      onClick={() => {
+                        if (gameMode === 'multi') {
+                          setIsQuizOpen(false);
+                          setRoom(null);
+                          setRoomCode('');
+                        } else {
+                          startQuiz();
+                        }
+                      }}
                       className="flex items-center justify-center gap-2 px-8 py-4 bg-blue-600 hover:bg-blue-500 text-white rounded-2xl font-bold transition-all shadow-lg shadow-blue-600/20"
                     >
                       <RotateCcw className="w-5 h-5" />
-                      <span>Chơi lại</span>
+                      <span>{gameMode === 'multi' ? 'Về menu' : 'Chơi lại'}</span>
                     </button>
                     <button
-                      onClick={() => setIsQuizOpen(false)}
+                      onClick={() => {
+                        setIsQuizOpen(false);
+                        setRoom(null);
+                        setRoomCode('');
+                      }}
                       className="flex items-center justify-center gap-2 px-8 py-4 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-2xl font-bold transition-all border border-slate-700"
                     >
                       <span>Đóng</span>

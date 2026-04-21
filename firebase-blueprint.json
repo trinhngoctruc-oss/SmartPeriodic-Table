@@ -1,0 +1,43 @@
+{
+  "entities": {
+    "user": {
+      "title": "User",
+      "description": "User profile information.",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "displayName": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["userId", "displayName"]
+    },
+    "room": {
+      "title": "Room",
+      "description": "A multiplayer game room.",
+      "type": "object",
+      "properties": {
+        "roomId": { "type": "string" },
+        "status": { "type": "string", "enum": ["waiting", "playing", "finished"] },
+        "players": { 
+          "type": "object",
+          "description": "Map of userId to player data (score, name, ready status)."
+        },
+        "questions": { "type": "array", "items": { "type": "object" } },
+        "startTime": { "type": "number" },
+        "duration": { "type": "number", "description": "Duration in seconds (e.g., 300 for 5 mins)." },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["roomId", "status", "players"]
+    }
+  },
+  "firestore": {
+    "users/{userId}": {
+      "schema": "user",
+      "description": "Collection of users."
+    },
+    "rooms/{roomId}": {
+      "schema": "room",
+      "description": "Collection of game rooms."
+    }
+  }
+}

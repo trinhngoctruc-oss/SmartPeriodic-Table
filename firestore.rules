@@ -1,0 +1,61 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Global Safety Net
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // Connection Test
+    match /test/connection {
+      allow read: if true;
+    }
+
+    // Helper Functions
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    // User Profile Rules
+    match /users/{userId} {
+      allow get: if isSignedIn() && isValidId(userId);
+      allow create, update: if isOwner(userId) && isValidId(userId) &&
+        incoming().keys().hasAll(['userId', 'displayName']) &&
+        incoming().displayName is string &&
+        incoming().displayName.size() <= 64;
+    }
+
+    // Room Rules
+    match /rooms/{roomId} {
+      allow get: if isSignedIn() && isValidId(roomId);
+      allow list: if false; 
+      
+      allow create: if isSignedIn() && isValidId(roomId) &&
+        incoming().keys().hasAll(['roomId', 'status', 'players', 'createdAt']) &&
+        incoming().status == 'waiting';
+
+      allow update: if isSignedIn() && isValidId(roomId) && (
+        // Allow if the room is still waiting for players
+        existing().status == 'waiting' ||
+        // Or if the user is already a participant in the game
+        existing().players.keys().contains(request.auth.uid)
+      );
+    }
+  }
+}
