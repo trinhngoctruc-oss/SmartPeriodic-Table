@@ -103,7 +103,7 @@ export default function App() {
       return ['alkali-metal', 'alkaline-earth', 'transition-metal', 'post-transition-metal', 'lanthanide', 'actinide'].includes(element.category);
     }
     if (categoryKey === 'nonmetal') {
-      return ['nonmetal', 'hydrogen', 'metalloid'].includes(element.category);
+      return ['nonmetal', 'hydrogen', 'halogen', 'metalloid'].includes(element.category);
     }
     return element.category === categoryKey || element.block === categoryKey;
   };
@@ -166,12 +166,14 @@ export default function App() {
             isFilterMatch
           );
 
+          const isDark = ['alkali-metal', 'post-transition-metal', 'noble-gas', 'transition-metal'].includes(element.category);
+
           grid.push(
             <motion.div
               key={element.number}
               layoutId={`element-${element.number}`}
               onClick={() => handleElementClick(element)}
-              className={`relative flex flex-col items-center justify-center p-1 border border-slate-400/30 rounded-md cursor-pointer hover:scale-110 transition-all shadow-md w-full aspect-square sm:h-20 ${element.category === 'noble-gas' ? 'text-white' : 'text-gray-900'} ${isDimmed ? 'opacity-20 grayscale scale-95' : 'opacity-100 ring-2 ring-blue-400/0 shadow-[0_0_15px_rgba(96,165,250,0)]'} ${!isDimmed && searchQuery ? 'ring-blue-400 ring-offset-2 ring-offset-slate-900 shadow-[0_0_20px_rgba(96,165,250,0.5)] z-10' : ''}`}
+              className={`relative flex flex-col items-center justify-center p-1 border border-slate-400/30 rounded-md cursor-pointer hover:scale-110 transition-all shadow-md w-full aspect-square sm:h-20 ${isDark ? 'text-white' : 'text-gray-900'} ${isDimmed ? 'opacity-20 grayscale scale-95' : 'opacity-100 ring-2 ring-blue-400/0 shadow-[0_0_15px_rgba(96,165,250,0)]'} ${!isDimmed && searchQuery ? 'ring-blue-400 ring-offset-2 ring-offset-slate-900 shadow-[0_0_20px_rgba(96,165,250,0.5)] z-10' : ''}`}
               style={{ backgroundColor: element.color }}
               whileHover={{ zIndex: 10 }}
             >
@@ -217,11 +219,13 @@ export default function App() {
               isFilterMatch
             );
 
+            const isDark = ['alkali-metal', 'post-transition-metal', 'noble-gas', 'transition-metal'].includes(element.category);
+
             return (
               <motion.div
                 key={element.number}
                 onClick={() => handleElementClick(element)}
-                className={`relative flex flex-col items-center justify-center p-1 border border-slate-400/30 rounded-md cursor-pointer hover:scale-110 transition-all shadow-md text-gray-900 w-[calc(100%/19-4px)] h-20 ${isDimmed ? 'opacity-20 grayscale scale-95' : 'opacity-100 ring-2 ring-blue-400/0 shadow-[0_0_15px_rgba(96,165,250,0)]'} ${!isDimmed && searchQuery ? 'ring-blue-400 ring-offset-2 ring-offset-slate-900 shadow-[0_0_20px_rgba(96,165,250,0.5)] z-10' : ''}`}
+                className={`relative flex flex-col items-center justify-center p-1 border border-slate-400/30 rounded-md cursor-pointer hover:scale-110 transition-all shadow-md w-[calc(100%/19-4px)] h-20 ${isDark ? 'text-white' : 'text-gray-900'} ${isDimmed ? 'opacity-20 grayscale scale-95' : 'opacity-100 ring-2 ring-blue-400/0 shadow-[0_0_15px_rgba(96,165,250,0)]'} ${!isDimmed && searchQuery ? 'ring-blue-400 ring-offset-2 ring-offset-slate-900 shadow-[0_0_20px_rgba(96,165,250,0.5)] z-10' : ''}`}
                 style={{ backgroundColor: element.color }}
               >
                 <span className="absolute top-0.5 left-1 text-[8px] sm:text-[10px] font-bold">{element.number}</span>
@@ -254,11 +258,13 @@ export default function App() {
               isFilterMatch
             );
 
+            const isDark = ['alkali-metal', 'post-transition-metal', 'noble-gas', 'transition-metal'].includes(element.category);
+
             return (
               <motion.div
                 key={element.number}
                 onClick={() => handleElementClick(element)}
-                className={`relative flex flex-col items-center justify-center p-1 border border-slate-400/30 rounded-md cursor-pointer hover:scale-110 transition-all shadow-md text-gray-900 w-[calc(100%/19-4px)] h-20 ${isDimmed ? 'opacity-20 grayscale scale-95' : 'opacity-100 ring-2 ring-blue-400/0 shadow-[0_0_15px_rgba(96,165,250,0)]'} ${!isDimmed && searchQuery ? 'ring-blue-400 ring-offset-2 ring-offset-slate-900 shadow-[0_0_20px_rgba(96,165,250,0.5)] z-10' : ''}`}
+                className={`relative flex flex-col items-center justify-center p-1 border border-slate-400/30 rounded-md cursor-pointer hover:scale-110 transition-all shadow-md w-[calc(100%/19-4px)] h-20 ${isDark ? 'text-white' : 'text-gray-900'} ${isDimmed ? 'opacity-20 grayscale scale-95' : 'opacity-100 ring-2 ring-blue-400/0 shadow-[0_0_15px_rgba(96,165,250,0)]'} ${!isDimmed && searchQuery ? 'ring-blue-400 ring-offset-2 ring-offset-slate-900 shadow-[0_0_20px_rgba(96,165,250,0.5)] z-10' : ''}`}
                 style={{ backgroundColor: element.color }}
               >
                 <span className="absolute top-0.5 left-1 text-[8px] sm:text-[10px] font-bold">{element.number}</span>
@@ -335,7 +341,8 @@ export default function App() {
         <div className="mb-8 flex flex-wrap gap-2 justify-center max-w-5xl mx-auto p-4 bg-slate-800/20 rounded-3xl border border-slate-700/50 backdrop-blur-sm">
           {Object.entries(categories).map(([key, label]) => {
             let color = elements.find(e => e.category === key)?.color || blockColors[key] || '#334155';
-            if (key === 'metal') color = '#33CCFF'; // Representative metal color (transition)
+            if (key === 'metal') color = '#2979FF'; // Representative metal color (vivid blue)
+            if (key === 'nonmetal') color = '#FFEA00'; // Representative nonmetal color (vivid yellow)
             const isActive = activeCategory === key;
             return (
               <button

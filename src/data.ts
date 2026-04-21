@@ -393,10 +393,10 @@ for (let i = 1; i <= 118; i++) {
   else if (i >= 89 && i <= 103) cat = "actinide";
   else if (g >= 3 && g <= 12) cat = "transition-metal";
   else if (g === 18) cat = "noble-gas";
-  else if (g === 17) cat = "halogen";
-  else if ([5, 14, 32, 33, 51, 52, 84].includes(i)) cat = "metalloid";
+  else if (g === 17 && i !== 117) cat = "halogen";
+  else if ([5, 14, 33, 52].includes(i)) cat = "metalloid";
   else if ([6, 7, 8, 15, 16, 34].includes(i)) cat = "nonmetal";
-  else if ([13, 31, 49, 50, 81, 82, 83].includes(i)) cat = "post-transition-metal";
+  else if ([13, 31, 32, 49, 50, 51, 81, 82, 83, 84, 117].includes(i)) cat = "post-transition-metal";
 
   // Block Logic
   if (g <= 2 || i === 2) block = "block-s";
@@ -449,17 +449,17 @@ for (let i = 1; i <= 118; i++) {
 
 elements.forEach(e => {
   switch (e.category) {
-    case "hydrogen": e.color = "#FFFF00"; break;
-    case "alkali-metal": e.color = "#FF9999"; break;
-    case "alkaline-earth": e.color = "#FFCC33"; break;
-    case "transition-metal": e.color = "#33CCFF"; break;
-    case "post-transition-metal": e.color = "#FF99FF"; break;
-    case "metalloid": e.color = "#CCCC99"; break;
-    case "nonmetal": e.color = "#33FF33"; break;
-    case "halogen": e.color = "#9999FF"; break;
-    case "noble-gas": e.color = "#7C3AED"; break;
-    case "lanthanide": e.color = "#CCFFFF"; break;
-    case "actinide": e.color = "#CCFFCC"; break;
+    case "hydrogen": e.color = "#FFEA00"; break; // Bright Yellow (Same as Nonmetal but distinct symbol)
+    case "alkali-metal": e.color = "#FF1744"; break; // Bright Red
+    case "alkaline-earth": e.color = "#FF9100"; break; // Bright Orange
+    case "transition-metal": e.color = "#2979FF"; break; // Bright Blue
+    case "post-transition-metal": e.color = "#D500F9"; break; // Bright Purple/Magenta
+    case "metalloid": e.color = "#00BFA5"; break; // Bright Teal
+    case "nonmetal": e.color = "#FFEA00"; break; // Bright Yellow
+    case "halogen": e.color = "#00E676"; break; // Electric Green
+    case "noble-gas": e.color = "#F50057"; break; // Vivid Magenta/Pink
+    case "lanthanide": e.color = "#00E5FF"; break; // Bright Cyan
+    case "actinide": e.color = "#76FF03"; break; // Lime Green
   }
 });
 
