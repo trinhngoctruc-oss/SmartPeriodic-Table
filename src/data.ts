@@ -25,7 +25,7 @@ export interface Element {
 }
 
 export const categories = {
-  "post-transition-metal": "Kim loại",
+  "metal": "Kim loại",
   "nonmetal": "Phi kim",
   "noble-gas": "Khí hiếm",
   "alkali-metal": "Kim loại kiềm",
@@ -457,7 +457,7 @@ elements.forEach(e => {
     case "metalloid": e.color = "#CCCC99"; break;
     case "nonmetal": e.color = "#33FF33"; break;
     case "halogen": e.color = "#9999FF"; break;
-    case "noble-gas": e.color = "#C5B1B1"; break;
+    case "noble-gas": e.color = "#7C3AED"; break;
     case "lanthanide": e.color = "#CCFFFF"; break;
     case "actinide": e.color = "#CCFFCC"; break;
   }
