@@ -449,17 +449,17 @@ for (let i = 1; i <= 118; i++) {
 
 elements.forEach(e => {
   switch (e.category) {
-    case "hydrogen": e.color = "#FFEA00"; break; // Bright Yellow (Same as Nonmetal but distinct symbol)
-    case "alkali-metal": e.color = "#FF1744"; break; // Bright Red
-    case "alkaline-earth": e.color = "#FF9100"; break; // Bright Orange
-    case "transition-metal": e.color = "#2979FF"; break; // Bright Blue
-    case "post-transition-metal": e.color = "#D500F9"; break; // Bright Purple/Magenta
-    case "metalloid": e.color = "#00BFA5"; break; // Bright Teal
-    case "nonmetal": e.color = "#FFEA00"; break; // Bright Yellow
-    case "halogen": e.color = "#00E676"; break; // Electric Green
-    case "noble-gas": e.color = "#F50057"; break; // Vivid Magenta/Pink
-    case "lanthanide": e.color = "#00E5FF"; break; // Bright Cyan
-    case "actinide": e.color = "#76FF03"; break; // Lime Green
+    case "hydrogen": e.color = "#FFF59D"; break; // Soft Yellow
+    case "alkali-metal": e.color = "#EF9A9A"; break; // Soft Red
+    case "alkaline-earth": e.color = "#FFCC80"; break; // Soft Orange
+    case "transition-metal": e.color = "#90CAF9"; break; // Soft Blue
+    case "post-transition-metal": e.color = "#CE93D8"; break; // Soft Purple
+    case "metalloid": e.color = "#80CBC4"; break; // Soft Teal
+    case "nonmetal": e.color = "#FFF59D"; break; // Soft Yellow
+    case "halogen": e.color = "#A5D6A7"; break; // Soft Green
+    case "noble-gas": e.color = "#F48FB1"; break; // Soft Pink
+    case "lanthanide": e.color = "#80DEEA"; break; // Soft Cyan
+    case "actinide": e.color = "#C5E1A5"; break; // Soft Lime
   }
 });
 
