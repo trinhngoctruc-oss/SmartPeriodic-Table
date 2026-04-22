@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'motion/react';
 import { Volume2, X, Info, Beaker, GraduationCap, PlayCircle, Trophy, Gamepad2, ArrowRight, CheckCircle2, XCircle, RotateCcw, LayoutGrid, Search, Users, Copy, Loader2, UserCircle2 } from 'lucide-react';
 import { elements, categories, Element, blockColors } from './data';
 import { generateQuiz, Question } from './quizService';
-import { useAuth, registerUser, createRoom, joinRoom, updateScore, finishGame, GameRoom, Player } from './lib/gameService';
+import { useAuth, registerUser, createRoom, joinRoom, updateScore, finishGame, startGame, GameRoom, Player } from './lib/gameService';
 import { doc, onSnapshot, getDoc } from 'firebase/firestore';
 import { db } from './lib/firebase';
 
@@ -83,6 +83,7 @@ export default function App() {
       unsub = onSnapshot(doc(db, 'rooms', roomCode), (snap) => {
         if (snap.exists()) {
           const roomData = snap.data() as GameRoom;
+          console.log("Room Update:", roomData.status, Object.keys(roomData.players).length);
           setRoom(roomData);
 
           // Crucial: Sync quiz questions if they aren't loaded yet (e.g., on refresh)
@@ -971,6 +972,15 @@ export default function App() {
                       </>
                     )}
                   </div>
+
+                  {Object.keys(room.players).length >= 2 && room.hostId === user?.uid && (
+                    <button 
+                      onClick={() => startGame(room.roomId)}
+                      className="w-full py-4 bg-green-600 hover:bg-green-500 text-white rounded-2xl font-black text-xl shadow-xl shadow-green-900/20 mb-6 transition-all transform hover:scale-[1.02]"
+                    >
+                      BẮT ĐẦU NGAY
+                    </button>
+                  )}
 
                   <button 
                     onClick={() => {

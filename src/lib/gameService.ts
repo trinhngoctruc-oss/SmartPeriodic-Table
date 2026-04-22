@@ -63,6 +63,7 @@ export interface Player {
 
 export interface GameRoom {
   roomId: string;
+  hostId?: string;
   status: 'waiting' | 'playing' | 'finished';
   players: Record<string, Player>;
   questions: any[];
@@ -114,6 +115,7 @@ export const createRoom = async (creatorId: string, creatorName: string, questio
   const roomId = nanoid(5).toUpperCase();
   const roomData: GameRoom = {
     roomId,
+    hostId: creatorId,
     status: 'waiting',
     players: {
       [creatorId]: {
@@ -170,6 +172,18 @@ export const updateScore = async (roomId: string, userId: string, newScore: numb
     await updateDoc(roomRef, {
       [`players.${userId}.score`]: newScore,
       [`players.${userId}.lastActive`]: Date.now()
+    });
+  } catch (err) {
+    handleFirestoreError(err, 'update', `rooms/${roomId}`);
+  }
+};
+
+export const startGame = async (roomId: string) => {
+  const roomRef = doc(db, 'rooms', roomId);
+  try {
+    await updateDoc(roomRef, { 
+      status: 'playing',
+      startTime: Date.now() // Use simple number for consistency
     });
   } catch (err) {
     handleFirestoreError(err, 'update', `rooms/${roomId}`);
