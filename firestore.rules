@@ -43,7 +43,7 @@ service cloud.firestore {
 
     // Room Rules
     match /rooms/{roomId} {
-      allow get: if isSignedIn() && isValidId(roomId);
+      allow read: if isSignedIn() && isValidId(roomId);
       allow list: if false; 
       
       allow create: if isSignedIn() && isValidId(roomId) &&
@@ -51,8 +51,8 @@ service cloud.firestore {
         incoming().status == 'waiting';
 
       allow update: if isSignedIn() && isValidId(roomId) && (
-        // Allow joining if the room is still waiting for players
-        (existing().status == 'waiting' && Object.keys(existing().players).length < 2) ||
+        // Allow joining if the room is still waiting for players (Map size check)
+        (existing().status == 'waiting' && existing().players.size() < 2) ||
         // Allow host to start the game or participants to update scores
         existing().players.keys().contains(request.auth.uid)
       );
