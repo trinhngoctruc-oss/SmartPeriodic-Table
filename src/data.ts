@@ -393,10 +393,10 @@ for (let i = 1; i <= 118; i++) {
   else if (i >= 89 && i <= 103) cat = "actinide";
   else if (g >= 3 && g <= 12) cat = "transition-metal";
   else if (g === 18) cat = "noble-gas";
-  else if (g === 17 && i !== 117) cat = "halogen";
+  else if (g === 17) cat = "halogen";
   else if ([5, 14, 33, 52].includes(i)) cat = "metalloid";
   else if ([6, 7, 8, 15, 16, 34].includes(i)) cat = "nonmetal";
-  else if ([13, 31, 32, 49, 50, 51, 81, 82, 83, 84, 117].includes(i)) cat = "post-transition-metal";
+  else if ([13, 31, 32, 49, 50, 51, 81, 82, 83, 84].includes(i)) cat = "post-transition-metal";
 
   // Block Logic
   if (g <= 2 || i === 2) block = "block-s";
