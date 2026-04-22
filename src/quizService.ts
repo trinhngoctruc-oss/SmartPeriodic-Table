@@ -25,7 +25,8 @@ export const generateQuiz = (elements: Element[], count: number = 15): Question[
       '5': '⁵', '6': '⁶', '7': '⁷', '8': '⁸', '9': '⁹'
     };
     return config.replace(/([spdf])(\d+)/g, (_, subshell, count) => {
-      return subshell + count.split('').map((d: string) => superscripts[d] || d).join('');
+      if (!count) return subshell;
+      return subshell + count.split('').map((d: string) => (superscripts as any)[d] || d).join('');
     });
   };
 

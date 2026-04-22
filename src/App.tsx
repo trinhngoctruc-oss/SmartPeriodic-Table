@@ -952,9 +952,9 @@ export default function App() {
                     {(Object.values(room.players) as Player[]).map((p, idx) => (
                       <div key={p.userId} className="flex flex-col items-center gap-2">
                         <div className={`w-12 h-12 rounded-full flex items-center justify-center text-white font-bold ring-4 ${p.userId === user?.uid ? 'bg-blue-500 ring-blue-500/20' : 'bg-amber-500 ring-amber-500/20'}`}>
-                          {p.name[0]}
+                          {p.name?.[0] || '?'}
                         </div>
-                        <span className="text-sm font-bold text-white">{p.name}</span>
+                        <span className="text-sm font-bold text-white">{p.name || 'Người chơi'}</span>
                         <span className="text-[10px] text-green-400 font-bold uppercase">Sẵn sàng</span>
                       </div>
                     ))}
@@ -1026,9 +1026,9 @@ export default function App() {
                   </div>
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-8">
-                    {quizQuestions[currentQuestionIndex].options.map((option, idx) => {
+                    {quizQuestions[currentQuestionIndex]?.options?.map((option, idx) => {
                       const labels = ['A', 'B', 'C', 'D'];
-                      const isCorrect = option === quizQuestions[currentQuestionIndex].correctAnswer;
+                      const isCorrect = option === quizQuestions[currentQuestionIndex]?.correctAnswer;
                       const isSelected = option === selectedAnswer;
                       
                       let buttonClass = "bg-slate-800 border-slate-700 text-slate-300 hover:border-blue-500/50 hover:bg-slate-800/80";
@@ -1038,6 +1038,8 @@ export default function App() {
                         else buttonClass = "bg-slate-800/50 border-slate-700 text-slate-500 opacity-50";
                       }
 
+                      if (!option) return null;
+
                       return (
                         <button
                           key={idx}
@@ -1046,7 +1048,7 @@ export default function App() {
                           className={`flex items-center gap-4 p-4 rounded-2xl border-2 transition-all text-left group ${buttonClass}`}
                         >
                           <span className={`w-8 h-8 flex items-center justify-center rounded-lg font-bold shrink-0 ${isAnswered && isCorrect ? 'bg-green-500 text-white' : 'bg-slate-700 text-slate-400 group-hover:bg-blue-500 group-hover:text-white'}`}>
-                            {labels[idx]}
+                            {labels[idx] || '?'}
                           </span>
                           <span className="font-medium">{option}</span>
                           {isAnswered && isCorrect && <CheckCircle2 className="w-5 h-5 ml-auto text-green-500" />}
