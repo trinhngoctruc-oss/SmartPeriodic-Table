@@ -85,6 +85,11 @@ export default function App() {
           const roomData = snap.data() as GameRoom;
           setRoom(roomData);
 
+          // Crucial: Sync quiz questions if they aren't loaded yet (e.g., on refresh)
+          if (roomData.questions && quizQuestions.length === 0) {
+            setQuizQuestions(roomData.questions);
+          }
+
           if (roomData.status === 'playing' && roomData.startTime && !timerRef.current) {
             const now = Date.now();
             const startMillis = typeof roomData.startTime === 'number' 
@@ -846,6 +851,18 @@ export default function App() {
               exit={{ opacity: 0, y: 50 }}
               className="bg-slate-900 border border-slate-700 rounded-3xl overflow-hidden max-w-2xl w-full shadow-2xl relative"
             >
+              {error && (
+                <div className="absolute top-4 left-4 right-4 z-[70] p-4 bg-red-500/90 backdrop-blur-md border border-red-400/50 rounded-2xl text-white text-sm flex items-center justify-between shadow-xl">
+                  <div className="flex items-center gap-2">
+                    <XCircle className="w-5 h-5 flex-shrink-0" />
+                    <p>{error}</p>
+                  </div>
+                  <button onClick={() => setError(null)} className="p-1 hover:bg-white/20 rounded-full transition-colors">
+                    <X className="w-4 h-4" />
+                  </button>
+                </div>
+              )}
+
               {gameMode === 'multi' && !room ? (
                 <div className="p-12 text-center">
                   <div className="w-16 h-16 bg-blue-600/20 rounded-2xl flex items-center justify-center mx-auto mb-6">
@@ -966,7 +983,7 @@ export default function App() {
                     Hủy phòng
                   </button>
                 </div>
-              ) : !showResult ? (
+              ) : (!showResult && quizQuestions.length > 0 && quizQuestions[currentQuestionIndex]) ? (
                 <div className="p-8">
                   <div className="flex items-center justify-between mb-8">
                     <div className="flex items-center gap-3">
@@ -1009,7 +1026,7 @@ export default function App() {
                   </div>
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-8">
-                    {quizQuestions[currentQuestionIndex]?.options.map((option, idx) => {
+                    {quizQuestions[currentQuestionIndex].options.map((option, idx) => {
                       const labels = ['A', 'B', 'C', 'D'];
                       const isCorrect = option === quizQuestions[currentQuestionIndex].correctAnswer;
                       const isSelected = option === selectedAnswer;
@@ -1049,6 +1066,13 @@ export default function App() {
                       <ArrowRight className="w-5 h-5" />
                     </button>
                   </div>
+                </div>
+              ) : !showResult ? (
+                <div className="p-12 text-center py-24">
+                  <div className="w-16 h-16 bg-blue-600/10 rounded-full flex items-center justify-center mx-auto mb-6">
+                    <Loader2 className="w-8 h-8 text-blue-400 animate-spin" />
+                  </div>
+                  <p className="text-slate-400 font-medium animate-pulse">Đang khởi tạo thử thách...</p>
                 </div>
               ) : (
                 <div className="p-12 text-center">
