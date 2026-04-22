@@ -87,8 +87,8 @@ export default function App() {
           setRoom(roomData);
 
           // Crucial: Sync quiz questions if they aren't loaded yet (e.g., on refresh)
-          if (roomData.questions && quizQuestions.length === 0) {
-            setQuizQuestions(roomData.questions);
+          if (roomData.questions) {
+            setQuizQuestions(prev => (prev.length === 0 ? roomData.questions : prev));
           }
 
           if (roomData.status === 'playing' && roomData.startTime && !timerRef.current) {
@@ -138,10 +138,21 @@ export default function App() {
     };
   }, [roomCode, gameMode]);
 
+  const resetGameState = () => {
+    console.log("Resetting Game State...");
+    setCurrentQuestionIndex(0);
+    setScore(0);
+    setTimeLeft(90);
+    setIsAnswered(false);
+    setSelectedAnswer(null);
+    setShowResult(false);
+    setError(null);
+  };
+
   const handleCreateRoom = async () => {
     if (!user || !displayName) return;
     try {
-      setError(null);
+      resetGameState();
       const questions = generateQuiz(elements, 15);
       const code = await createRoom(user.uid, displayName, questions);
       setRoomCode(code);
@@ -154,7 +165,7 @@ export default function App() {
   const handleJoinRoom = async (code: string) => {
     if (!user || !displayName || !code) return;
     setIsJoining(true);
-    setError(null);
+    resetGameState();
     try {
       await joinRoom(code.toUpperCase(), user.uid, displayName);
       const snap = await getDoc(doc(db, 'rooms', code.toUpperCase()));
