@@ -51,8 +51,8 @@ service cloud.firestore {
         incoming().status == 'waiting';
 
       allow update: if isSignedIn() && isValidId(roomId) && (
-        // Allow joining if the room is still waiting for players (Map size check)
-        (existing().status == 'waiting' && existing().players.size() < 2) ||
+        // Allow joining if the room is still waiting for players (Correct Map size check)
+        (existing().status == 'waiting' && existing().players.keys().size() < 2) ||
         // Allow host to start the game or participants to update scores
         existing().players.keys().contains(request.auth.uid)
       );

@@ -183,7 +183,7 @@ export const startGame = async (roomId: string) => {
   try {
     await updateDoc(roomRef, { 
       status: 'playing',
-      startTime: Date.now() // Use simple number for consistency
+      startTime: serverTimestamp() 
     });
   } catch (err) {
     handleFirestoreError(err, 'update', `rooms/${roomId}`);

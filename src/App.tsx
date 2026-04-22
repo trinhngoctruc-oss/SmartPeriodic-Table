@@ -91,11 +91,10 @@ export default function App() {
             setQuizQuestions(prev => (prev.length === 0 ? roomData.questions : prev));
           }
 
+          // Add a minor delay for startTime sync to avoid negative elapsed time
           if (roomData.status === 'playing' && roomData.startTime && !timerRef.current) {
             const now = Date.now();
-            const startMillis = typeof roomData.startTime === 'number' 
-              ? roomData.startTime 
-              : (roomData.startTime as any).toMillis?.() || Date.now();
+            const startMillis = (roomData.startTime as any).toMillis?.() || Date.now();
               
             const elapsed = Math.floor((now - startMillis) / 1000);
             const remaining = Math.max(0, roomData.duration - elapsed);
