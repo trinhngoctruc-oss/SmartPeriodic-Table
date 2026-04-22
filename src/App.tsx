@@ -63,11 +63,8 @@ export default function App() {
       setSelectedAnswer(null);
       setIsAnswered(false);
     } else {
-      if (gameMode === 'multi' && room) {
-        // Just wait for timer or other player in multi
-      } else {
-        setShowResult(true);
-      }
+      setShowResult(true);
+      // In multi, we still keep the room status as is until timer ends or both finish
     }
   };
 
@@ -963,15 +960,27 @@ export default function App() {
                   </div>
 
                   <div className="flex items-center justify-center gap-8 mb-8">
-                    {(Object.values(room.players) as Player[]).map((p, idx) => (
-                      <div key={p.userId} className="flex flex-col items-center gap-2">
-                        <div className={`w-12 h-12 rounded-full flex items-center justify-center text-white font-bold ring-4 ${p.userId === user?.uid ? 'bg-blue-500 ring-blue-500/20' : 'bg-amber-500 ring-amber-500/20'}`}>
-                          {p.name?.[0] || '?'}
+                    {(Object.values(room.players) as Player[]).map((p, idx) => {
+                      const isHost = room.hostId === p.userId;
+                      return (
+                        <div key={p.userId} className="flex flex-col items-center gap-2">
+                          <div className="relative">
+                            <div className={`w-12 h-12 rounded-full flex items-center justify-center text-white font-bold ring-4 ${p.userId === user?.uid ? 'bg-blue-500 ring-blue-500/20' : 'bg-amber-500 ring-amber-500/20'}`}>
+                              {p.name?.[0] || '?'}
+                            </div>
+                            {isHost && (
+                              <div className="absolute -top-1 -right-1 bg-amber-400 text-slate-900 text-[8px] font-black px-1 rounded-sm border border-slate-900 shadow-sm">
+                                HOST
+                              </div>
+                            )}
+                          </div>
+                          <span className="text-sm font-bold text-white flex items-center gap-1">
+                             {p.name || 'Người chơi'} {p.userId === user?.uid && <span className="text-[10px] text-blue-400">(Bạn)</span>}
+                          </span>
+                          <span className="text-[10px] text-green-400 font-bold uppercase">Sẵn sàng</span>
                         </div>
-                        <span className="text-sm font-bold text-white">{p.name || 'Người chơi'}</span>
-                        <span className="text-[10px] text-green-400 font-bold uppercase">Sẵn sàng</span>
-                      </div>
-                    ))}
+                      );
+                    })}
                     
                     {Object.keys(room.players).length < 2 && (
                       <>
@@ -1109,15 +1118,19 @@ export default function App() {
                 <div className="p-12 text-center">
                   {gameMode === 'multi' && room ? (() => {
                     const players = Object.values(room.players) as Player[];
-                    const myPlayer = players.find(p => p.userId === user?.uid);
                     const opponent = players.find(p => p.userId !== user?.uid);
-                    const isWin = opponent ? (myPlayer?.score || 0) > (opponent.score || 0) : true;
-                    const isDraw = opponent ? (myPlayer?.score || 0) === (opponent.score || 0) : false;
+                    
+                    // Use local score for accuracy, Firestore score for opponent
+                    const myFinalScore = score; 
+                    const opponentScore = opponent?.score || 0;
+                    
+                    const isWin = opponent ? myFinalScore > opponentScore : true;
+                    const isDraw = opponent ? myFinalScore === opponentScore : false;
 
                     return (
                       <>
                         <div className="w-24 h-24 bg-amber-500/20 rounded-full flex items-center justify-center mx-auto mb-6">
-                          {isWin ? <Trophy className="w-12 h-12 text-amber-500" /> : <XCircle className="w-12 h-12 text-red-500" />}
+                          {isWin || isDraw ? <Trophy className="w-12 h-12 text-amber-500" /> : <XCircle className="w-12 h-12 text-red-500" />}
                         </div>
                         <h2 className="text-3xl font-bold text-white mb-2">
                           {isWin ? 'Chúc mừng bạn đã thắng!' : isDraw ? 'Kết quả Hòa!' : 'Tiếc quá, bạn đã thua cuộc!'}
@@ -1126,11 +1139,11 @@ export default function App() {
                         <div className="grid grid-cols-2 gap-4 my-8 max-w-sm mx-auto">
                            <div className="p-4 bg-blue-600/10 rounded-2xl border border-blue-500/30">
                               <div className="text-[10px] uppercase text-slate-400 mb-1 font-bold">Bạn</div>
-                              <div className="text-4xl font-black text-white">{myPlayer?.score}</div>
+                              <div className="text-4xl font-black text-white">{myFinalScore}</div>
                            </div>
                            <div className="p-4 bg-slate-800 rounded-2xl border border-slate-700">
                               <div className="text-[10px] uppercase text-slate-400 mb-1 font-bold">{opponent?.name || 'Đối thủ'}</div>
-                              <div className="text-4xl font-black text-slate-200">{opponent?.score || 0}</div>
+                              <div className="text-4xl font-black text-slate-200">{opponentScore}</div>
                            </div>
                         </div>
                       </>
