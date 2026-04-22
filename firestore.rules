@@ -54,7 +54,7 @@ service cloud.firestore {
         // Allow joining if the room is still waiting for players (Correct Map size check)
         (existing().status == 'waiting' && existing().players.keys().size() < 2) ||
         // Allow host to start the game or participants to update scores
-        existing().players.keys().contains(request.auth.uid)
+        request.auth.uid in existing().players.keys()
       );
     }
   }

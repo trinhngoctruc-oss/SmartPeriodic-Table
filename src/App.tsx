@@ -96,7 +96,7 @@ export default function App() {
             const now = Date.now();
             const startMillis = (roomData.startTime as any).toMillis?.() || Date.now();
               
-            const elapsed = Math.floor((now - startMillis) / 1000);
+            const elapsed = Math.max(0, Math.floor((now - startMillis) / 1000));
             const remaining = Math.max(0, roomData.duration - elapsed);
             setTimeLeft(remaining);
             
@@ -126,6 +126,9 @@ export default function App() {
         console.error("Room Snapshot Error:", err);
         if (err.code === 'permission-denied') {
           setError("Bạn không có quyền truy cập phòng này hoặc quyền hạn của bạn đã bị từ chối.");
+          setRoom(null);
+          setIsQuizOpen(false);
+          setGameMode(null);
         } else if (err.code === 'resource-exhausted') {
           setError("Hạn mức hệ thống đã tạm thời hết (Quota exceeded). Vui lòng thử lại sau.");
         }
