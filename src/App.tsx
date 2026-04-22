@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'motion/react';
 import { Volume2, X, Info, Beaker, GraduationCap, PlayCircle, Trophy, Gamepad2, ArrowRight, CheckCircle2, XCircle, RotateCcw, LayoutGrid, Search, Users, Copy, Loader2, UserCircle2 } from 'lucide-react';
 import { elements, categories, Element, blockColors } from './data';
 import { generateQuiz, Question } from './quizService';
-import { useAuth, registerUser, createRoom, joinRoom, updateScore, finishGame, startGame, GameRoom, Player } from './lib/gameService';
+import { useAuth, registerUser, createRoom, joinRoom, updateScore, finishGame, startGame, GameRoom, Player, setPlayerFinished } from './lib/gameService';
 import { doc, onSnapshot, getDoc } from 'firebase/firestore';
 import { db } from './lib/firebase';
 
@@ -63,8 +63,11 @@ export default function App() {
       setSelectedAnswer(null);
       setIsAnswered(false);
     } else {
-      setShowResult(true);
-      // In multi, we still keep the room status as is until timer ends or both finish
+      if (gameMode === 'multi' && room && user) {
+        setPlayerFinished(room.roomId, user.uid);
+      } else {
+        setShowResult(true);
+      }
     }
   };
 
@@ -102,13 +105,20 @@ export default function App() {
                 if (prev <= 1) {
                   clearInterval(timerRef.current!);
                   timerRef.current = null;
-                  setShowResult(true);
                   finishGame(roomData.roomId);
                   return 0;
                 }
                 return prev - 1;
               });
             }, 1000);
+          }
+
+          // Transition to finished if both players are done
+          if (roomData.status === 'playing' && Object.keys(roomData.players).length === 2) {
+            const players = Object.values(roomData.players);
+            if (players.every(p => p.hasFinished)) {
+              finishGame(roomData.roomId);
+            }
           }
 
           if (roomData.status === 'finished') {
@@ -998,7 +1008,7 @@ export default function App() {
                   {Object.keys(room.players).length >= 2 && (() => {
                     // Host is either specifically set, or the one with the earliest activity (fallback)
                     const isHost = room.hostId ? room.hostId === user?.uid : 
-                      Object.values(room.players).sort((a, b) => a.lastActive - b.lastActive)[0]?.userId === user?.uid;
+                      (Object.values(room.players) as Player[]).sort((a, b) => a.lastActive - b.lastActive)[0]?.userId === user?.uid;
                     
                     return isHost && (
                       <button 
@@ -1049,63 +1059,81 @@ export default function App() {
                       {(Object.values(room.players) as Player[]).map(p => (
                         <div key={p.userId} className={`p-3 rounded-xl border ${p.userId === user?.uid ? 'bg-blue-600/10 border-blue-500/30' : 'bg-slate-800/40 border-slate-700'}`}>
                           <div className="flex justify-between items-center">
-                            <span className="text-xs font-bold text-slate-400 uppercase truncate">{p.name} {p.userId === user?.uid && '(Bạn)'}</span>
-                            <span className="text-xl font-black text-blue-400">{p.score}</span>
+                            <span className="text-xs font-bold text-slate-400 uppercase truncate">
+                                {p.name} {p.userId === user?.uid && '(Bạn)'}
+                                {p.hasFinished && <span className="ml-2 text-[10px] text-green-500 font-black">XUẤT SẮC ✓</span>}
+                            </span>
+                            <span className="text-xl font-black text-blue-400">{p.userId === user?.uid ? score : p.score}</span>
                           </div>
                         </div>
                       ))}
                     </div>
                   )}
 
-                  <div className="mb-8">
-                    <h3 className="text-xl sm:text-2xl font-bold text-white leading-tight">
-                      {quizQuestions[currentQuestionIndex]?.text}
-                    </h3>
-                  </div>
+                  {gameMode === 'multi' && room?.players[user?.uid]?.hasFinished ? (
+                    <div className="text-center py-20 bg-slate-800/20 rounded-3xl border border-dashed border-slate-700">
+                      <div className="w-16 h-16 bg-blue-600/10 rounded-full flex items-center justify-center mx-auto mb-6">
+                        <Loader2 className="w-8 h-8 text-blue-400 animate-spin" />
+                      </div>
+                      <h3 className="text-2xl font-bold text-white mb-2">Đang đợi đối thủ...</h3>
+                      <p className="text-slate-400">Bạn đã hoàn thành 15/15 câu hỏi. <br/>Kết quả sẽ hiển thị ngay khi đối thủ hoàn thành hoặc hết giờ.</p>
+                      <div className="mt-8 px-6 py-3 bg-blue-600/10 inline-block rounded-xl border border-blue-500/20">
+                         <span className="text-blue-400 font-bold uppercase tracking-widest text-sm">Điểm của bạn: {score}</span>
+                      </div>
+                    </div>
+                  ) : (
+                    <>
+                      <div className="mb-8">
+                        <h3 className="text-xl sm:text-2xl font-bold text-white leading-tight">
+                          {quizQuestions[currentQuestionIndex]?.text}
+                        </h3>
+                      </div>
 
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-8">
-                    {quizQuestions[currentQuestionIndex]?.options?.map((option, idx) => {
-                      const labels = ['A', 'B', 'C', 'D'];
-                      const isCorrect = option === quizQuestions[currentQuestionIndex]?.correctAnswer;
-                      const isSelected = option === selectedAnswer;
-                      
-                      let buttonClass = "bg-slate-800 border-slate-700 text-slate-300 hover:border-blue-500/50 hover:bg-slate-800/80";
-                      if (isAnswered) {
-                        if (isCorrect) buttonClass = "bg-green-500/20 border-green-500 text-green-400";
-                        else if (isSelected) buttonClass = "bg-red-500/20 border-red-500 text-red-400";
-                        else buttonClass = "bg-slate-800/50 border-slate-700 text-slate-500 opacity-50";
-                      }
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-8">
+                        {quizQuestions[currentQuestionIndex]?.options?.map((option, idx) => {
+                          const labels = ['A', 'B', 'C', 'D'];
+                          const isCorrect = option === quizQuestions[currentQuestionIndex]?.correctAnswer;
+                          const isSelected = option === selectedAnswer;
+                          
+                          let buttonClass = "bg-slate-800 border-slate-700 text-slate-300 hover:border-blue-500/50 hover:bg-slate-800/80";
+                          if (isAnswered) {
+                            if (isCorrect) buttonClass = "bg-green-500/20 border-green-500 text-green-400";
+                            else if (isSelected) buttonClass = "bg-red-500/20 border-red-500 text-red-400";
+                            else buttonClass = "bg-slate-800/50 border-slate-700 text-slate-500 opacity-50";
+                          }
 
-                      if (!option) return null;
+                          if (!option) return null;
 
-                      return (
+                          return (
+                            <button
+                              key={idx}
+                              disabled={isAnswered}
+                              onClick={() => handleAnswerSelect(option)}
+                              className={`flex items-center gap-4 p-4 rounded-2xl border-2 transition-all text-left group ${buttonClass}`}
+                            >
+                              <span className={`w-8 h-8 flex items-center justify-center rounded-lg font-bold shrink-0 ${isAnswered && isCorrect ? 'bg-green-500 text-white' : 'bg-slate-700 text-slate-400 group-hover:bg-blue-500 group-hover:text-white'}`}>
+                                {labels[idx] || '?'}
+                              </span>
+                              <span className="font-medium">{option}</span>
+                              {isAnswered && isCorrect && <CheckCircle2 className="w-5 h-5 ml-auto text-green-500" />}
+                              {isAnswered && isSelected && !isCorrect && <XCircle className="w-5 h-5 ml-auto text-red-500" />}
+                            </button>
+                          );
+                        })}
+                      </div>
+
+                      <div className="flex justify-end">
                         <button
-                          key={idx}
-                          disabled={isAnswered}
-                          onClick={() => handleAnswerSelect(option)}
-                          className={`flex items-center gap-4 p-4 rounded-2xl border-2 transition-all text-left group ${buttonClass}`}
+                          disabled={!isAnswered}
+                          onClick={nextQuestion}
+                          className={`flex items-center gap-2 px-8 py-3 rounded-xl font-bold transition-all ${isAnswered ? 'bg-blue-600 text-white hover:bg-blue-500 shadow-lg shadow-blue-600/20' : 'bg-slate-800 text-slate-600 cursor-not-allowed'}`}
                         >
-                          <span className={`w-8 h-8 flex items-center justify-center rounded-lg font-bold shrink-0 ${isAnswered && isCorrect ? 'bg-green-500 text-white' : 'bg-slate-700 text-slate-400 group-hover:bg-blue-500 group-hover:text-white'}`}>
-                            {labels[idx] || '?'}
-                          </span>
-                          <span className="font-medium">{option}</span>
-                          {isAnswered && isCorrect && <CheckCircle2 className="w-5 h-5 ml-auto text-green-500" />}
-                          {isAnswered && isSelected && !isCorrect && <XCircle className="w-5 h-5 ml-auto text-red-500" />}
+                          <span>{currentQuestionIndex === 14 ? 'Hoàn thành' : 'Câu tiếp theo'}</span>
+                          <ArrowRight className="w-5 h-5" />
                         </button>
-                      );
-                    })}
-                  </div>
-
-                  <div className="flex justify-end">
-                    <button
-                      disabled={!isAnswered}
-                      onClick={nextQuestion}
-                      className={`flex items-center gap-2 px-8 py-3 rounded-xl font-bold transition-all ${isAnswered ? 'bg-blue-600 text-white hover:bg-blue-500 shadow-lg shadow-blue-600/20' : 'bg-slate-800 text-slate-600 cursor-not-allowed'}`}
-                    >
-                      <span>{currentQuestionIndex === 14 ? 'Xem kết quả' : 'Câu tiếp theo'}</span>
-                      <ArrowRight className="w-5 h-5" />
-                    </button>
-                  </div>
+                      </div>
+                    </>
+                  )}
                 </div>
               ) : !showResult ? (
                 <div className="p-12 text-center py-24">
@@ -1118,6 +1146,7 @@ export default function App() {
                 <div className="p-12 text-center">
                   {gameMode === 'multi' && room ? (() => {
                     const players = Object.values(room.players) as Player[];
+                    const me = players.find(p => p.userId === user?.uid);
                     const opponent = players.find(p => p.userId !== user?.uid);
                     
                     // Use local score for accuracy, Firestore score for opponent
@@ -1130,20 +1159,22 @@ export default function App() {
                     return (
                       <>
                         <div className="w-24 h-24 bg-amber-500/20 rounded-full flex items-center justify-center mx-auto mb-6">
-                          {isWin || isDraw ? <Trophy className="w-12 h-12 text-amber-500" /> : <XCircle className="w-12 h-12 text-red-500" />}
+                          {isWin ? <Trophy className="w-12 h-12 text-amber-500" /> : isDraw ? <CheckCircle2 className="w-12 h-12 text-blue-400" /> : <XCircle className="w-12 h-12 text-red-500" />}
                         </div>
                         <h2 className="text-3xl font-bold text-white mb-2">
                           {isWin ? 'Chúc mừng bạn đã thắng!' : isDraw ? 'Kết quả Hòa!' : 'Tiếc quá, bạn đã thua cuộc!'}
                         </h2>
                         
                         <div className="grid grid-cols-2 gap-4 my-8 max-w-sm mx-auto">
-                           <div className="p-4 bg-blue-600/10 rounded-2xl border border-blue-500/30">
-                              <div className="text-[10px] uppercase text-slate-400 mb-1 font-bold">Bạn</div>
-                              <div className="text-4xl font-black text-white">{myFinalScore}</div>
+                           <div className={`p-4 rounded-2xl border ${isWin ? 'bg-green-600/10 border-green-500/30' : isDraw ? 'bg-blue-600/10 border-blue-500/30' : 'bg-slate-800 border-slate-700'}`}>
+                              <div className="text-[10px] uppercase text-slate-400 mb-1 font-bold truncate">{me?.name || 'Bạn'}</div>
+                              <div className={`text-4xl font-black ${isWin ? 'text-green-400' : 'text-white'}`}>{myFinalScore}</div>
+                              {isWin && <div className="text-[10px] text-green-500 font-bold mt-1">CHIẾN THẮNG</div>}
                            </div>
-                           <div className="p-4 bg-slate-800 rounded-2xl border border-slate-700">
-                              <div className="text-[10px] uppercase text-slate-400 mb-1 font-bold">{opponent?.name || 'Đối thủ'}</div>
-                              <div className="text-4xl font-black text-slate-200">{opponentScore}</div>
+                           <div className={`p-4 rounded-2xl border ${!isWin && !isDraw ? 'bg-green-600/10 border-green-500/30' : 'bg-slate-800 border-slate-700'}`}>
+                              <div className="text-[10px] uppercase text-slate-400 mb-1 font-bold truncate">{opponent?.name || 'Đối thủ'}</div>
+                              <div className={`text-4xl font-black ${!isWin && !isDraw ? 'text-green-400' : 'text-slate-200'}`}>{opponentScore}</div>
+                              {!isWin && !isDraw && <div className="text-[10px] text-green-500 font-bold mt-1">CHIẾN THẮNG</div>}
                            </div>
                         </div>
                       </>

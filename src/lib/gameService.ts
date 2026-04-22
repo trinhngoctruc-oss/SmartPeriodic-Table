@@ -59,6 +59,7 @@ export interface Player {
   score: number;
   ready: boolean;
   lastActive: any;
+  hasFinished?: boolean;
 }
 
 export interface GameRoom {
@@ -171,6 +172,18 @@ export const updateScore = async (roomId: string, userId: string, newScore: numb
   try {
     await updateDoc(roomRef, {
       [`players.${userId}.score`]: newScore,
+      [`players.${userId}.lastActive`]: Date.now()
+    });
+  } catch (err) {
+    handleFirestoreError(err, 'update', `rooms/${roomId}`);
+  }
+};
+
+export const setPlayerFinished = async (roomId: string, userId: string) => {
+  const roomRef = doc(db, 'rooms', roomId);
+  try {
+    await updateDoc(roomRef, {
+      [`players.${userId}.hasFinished`]: true,
       [`players.${userId}.lastActive`]: Date.now()
     });
   } catch (err) {
