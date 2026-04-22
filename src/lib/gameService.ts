@@ -26,6 +26,10 @@ interface FirestoreErrorInfo {
 }
 
 const handleFirestoreError = (error: any, operationType: any, path: string | null = null) => {
+  if (error.code === 'resource-exhausted') {
+    throw new Error("Hạn mức (Quota) của dự án đã hết. Vui lòng quay lại sau ít giờ hoặc ngày mai khi hạn mức được đặt lại.");
+  }
+  
   if (error.code === 'permission-denied') {
     const currentUser = auth.currentUser;
     const errorInfo: FirestoreErrorInfo = {

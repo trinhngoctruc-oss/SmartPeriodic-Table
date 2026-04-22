@@ -75,7 +75,7 @@ export default function App() {
     if (gameMode === 'multi' && room && user) {
       updateScore(room.roomId, user.uid, score);
     }
-  }, [score, gameMode, room, user]);
+  }, [score, gameMode, room?.roomId, user?.uid]);
 
   useEffect(() => {
     let unsub: (() => void) | null = null;
@@ -87,7 +87,11 @@ export default function App() {
 
           if (roomData.status === 'playing' && roomData.startTime && !timerRef.current) {
             const now = Date.now();
-            const elapsed = Math.floor((now - roomData.startTime) / 1000);
+            const startMillis = typeof roomData.startTime === 'number' 
+              ? roomData.startTime 
+              : (roomData.startTime as any).toMillis?.() || Date.now();
+              
+            const elapsed = Math.floor((now - startMillis) / 1000);
             const remaining = Math.max(0, roomData.duration - elapsed);
             setTimeLeft(remaining);
             
@@ -117,6 +121,8 @@ export default function App() {
         console.error("Room Snapshot Error:", err);
         if (err.code === 'permission-denied') {
           setError("Bạn không có quyền truy cập phòng này hoặc quyền hạn của bạn đã bị từ chối.");
+        } else if (err.code === 'resource-exhausted') {
+          setError("Hạn mức hệ thống đã tạm thời hết (Quota exceeded). Vui lòng thử lại sau.");
         }
       });
     }
@@ -181,7 +187,7 @@ export default function App() {
         utterance.voice = englishVoice;
       }
 
-      utterance.rate = 0.9;
+      utterance.rate = 1.0;
       utterance.pitch = 1.0;
       utterance.onstart = () => setIsSpeaking(true);
       utterance.onend = () => setIsSpeaking(false);
@@ -567,11 +573,26 @@ export default function App() {
               <div className="h-full overflow-y-auto">
                 {/* Content Section */}
                 <div className="p-8">
+                  {/* Image Section - Moved to top */}
+                  <div className="relative rounded-2xl overflow-hidden h-48 sm:h-64 border border-slate-700 mb-8">
+                    <img
+                      src={selectedElement.image}
+                      alt={selectedElement.name}
+                      className="w-full h-full object-cover"
+                      referrerPolicy="no-referrer"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-slate-900 via-transparent to-transparent" />
+                    <div className={`absolute bottom-4 left-4 px-3 py-1.5 rounded-lg ${selectedElement.color} text-slate-900 shadow-xl`}>
+                      <div className="text-[10px] font-bold opacity-70">Hình ảnh minh họa</div>
+                      <div className="text-xl font-black">{selectedElement.name}</div>
+                    </div>
+                  </div>
+
                   <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
                     <div>
                       <div className="flex items-center gap-2 mb-1">
                         <span className="bg-slate-800 text-blue-400 text-xs font-bold px-2 py-1 rounded border border-slate-700">
-                          Số hiệu: {selectedElement.number}
+                          Số hiệu nguyên tử: {selectedElement.number}
                         </span>
                         <h2 className="text-3xl font-bold text-white">{selectedElement.name}</h2>
                       </div>
@@ -709,21 +730,6 @@ export default function App() {
                       <p className="text-slate-300 text-sm leading-relaxed">
                         {selectedElement.description}
                       </p>
-                    </div>
-                  </div>
-
-                  {/* Image Section - Moved to bottom */}
-                  <div className="relative rounded-2xl overflow-hidden h-64 sm:h-80 border border-slate-700">
-                    <img
-                      src={selectedElement.image}
-                      alt={selectedElement.name}
-                      className="w-full h-full object-cover"
-                      referrerPolicy="no-referrer"
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-slate-900 via-transparent to-transparent" />
-                    <div className={`absolute bottom-6 left-6 p-4 rounded-xl ${selectedElement.color} text-slate-900 shadow-xl`}>
-                      <div className="text-[10px] font-bold opacity-70">Hình ảnh minh họa</div>
-                      <div className="text-2xl font-black">{selectedElement.name}</div>
                     </div>
                   </div>
                 </div>
@@ -926,20 +932,27 @@ export default function App() {
                   </div>
 
                   <div className="flex items-center justify-center gap-8 mb-8">
-                    <div className="flex flex-col items-center gap-2">
-                      <div className="w-12 h-12 bg-blue-500 rounded-full flex items-center justify-center text-white font-bold ring-4 ring-blue-500/20">
-                        {displayName[0]}
+                    {(Object.values(room.players) as Player[]).map((p, idx) => (
+                      <div key={p.userId} className="flex flex-col items-center gap-2">
+                        <div className={`w-12 h-12 rounded-full flex items-center justify-center text-white font-bold ring-4 ${p.userId === user?.uid ? 'bg-blue-500 ring-blue-500/20' : 'bg-amber-500 ring-amber-500/20'}`}>
+                          {p.name[0]}
+                        </div>
+                        <span className="text-sm font-bold text-white">{p.name}</span>
+                        <span className="text-[10px] text-green-400 font-bold uppercase">Sẵn sàng</span>
                       </div>
-                      <span className="text-sm font-bold text-white">{displayName}</span>
-                      <span className="text-[10px] text-green-400 font-bold uppercase">Sẵn sàng</span>
-                    </div>
-                    <div className="h-px w-12 bg-slate-800" />
-                    <div className="flex flex-col items-center gap-2">
-                      <div className="w-12 h-12 bg-slate-800 rounded-full flex items-center justify-center text-slate-600 border border-slate-700 border-dashed">
-                        ?
-                      </div>
-                      <span className="text-sm font-bold text-slate-600">Đang đợi...</span>
-                    </div>
+                    ))}
+                    
+                    {Object.keys(room.players).length < 2 && (
+                      <>
+                        <div className="h-px w-12 bg-slate-800" />
+                        <div className="flex flex-col items-center gap-2">
+                          <div className="w-12 h-12 bg-slate-800 rounded-full flex items-center justify-center text-slate-600 border border-slate-700 border-dashed">
+                            ?
+                          </div>
+                          <span className="text-sm font-bold text-slate-600">Đang đợi...</span>
+                        </div>
+                      </>
+                    )}
                   </div>
 
                   <button 
