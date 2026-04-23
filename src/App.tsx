@@ -26,6 +26,7 @@ export default function App() {
   const [error, setError] = useState<string | null>(null);
   const [timeLeft, setTimeLeft] = useState(0);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
+  const [nameInput, setNameInput] = useState('');
 
   // Quiz State
   const [isQuizOpen, setIsQuizOpen] = useState(false);
@@ -794,20 +795,36 @@ export default function App() {
                 <div className="space-y-4">
                   <div>
                     <label className="block text-sm font-medium text-slate-400 mb-2">Nhập tên của bạn để bắt đầu</label>
-                    <input 
-                      type="text"
-                      placeholder="Tên của bạn..."
-                      className="w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-3 text-white focus:ring-2 focus:ring-blue-500 outline-none"
-                      onKeyDown={(e) => {
-                        if (e.key === 'Enter') {
-                          const val = (e.target as HTMLInputElement).value.trim();
+                    <div className="flex gap-2">
+                      <input 
+                        type="text"
+                        placeholder="Tên của bạn..."
+                        className="flex-1 bg-slate-800 border border-slate-700 rounded-xl px-4 py-3 text-white focus:ring-2 focus:ring-blue-500 outline-none"
+                        value={nameInput}
+                        onChange={(e) => setNameInput(e.target.value)}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter') {
+                            const val = nameInput.trim();
+                            if (val && user) {
+                              setDisplayName(val);
+                              registerUser(user.uid, val);
+                            }
+                          }
+                        }}
+                      />
+                      <button 
+                        onClick={() => {
+                          const val = nameInput.trim();
                           if (val && user) {
                             setDisplayName(val);
                             registerUser(user.uid, val);
                           }
-                        }
-                      }}
-                    />
+                        }}
+                        className="px-6 py-3 bg-blue-600 hover:bg-blue-500 text-white rounded-xl font-bold transition-all"
+                      >
+                        LƯU
+                      </button>
+                    </div>
                   </div>
                   <p className="text-[10px] text-slate-500">Tên này sẽ hiển thị thi đấu với người khác</p>
                 </div>
@@ -1060,7 +1077,7 @@ export default function App() {
                         <div key={p.userId} className={`p-3 rounded-xl border ${p.userId === user?.uid ? 'bg-blue-600/10 border-blue-500/30' : 'bg-slate-800/40 border-slate-700'}`}>
                           <div className="flex justify-between items-center">
                             <span className="text-xs font-bold text-slate-400 uppercase truncate">
-                                {p.name} {p.userId === user?.uid && '(Bạn)'}
+                                {p.name || 'Người chơi'} {p.userId === user?.uid && '(Bạn)'}
                                 {p.hasFinished && <span className="ml-2 text-[10px] text-green-500 font-black">XUẤT SẮC ✓</span>}
                             </span>
                             <span className="text-xl font-black text-blue-400">{p.userId === user?.uid ? score : p.score}</span>
@@ -1149,12 +1166,35 @@ export default function App() {
                     const me = players.find(p => p.userId === user?.uid);
                     const opponent = players.find(p => p.userId !== user?.uid);
                     
-                    // Use local score for accuracy, Firestore score for opponent
-                    const myFinalScore = score; 
+                    // Use Firestore values for both to ensure perfect consistency between clients
+                    const myFinalScore = me?.score || 0; 
                     const opponentScore = opponent?.score || 0;
                     
-                    const isWin = opponent ? myFinalScore > opponentScore : true;
-                    const isDraw = opponent ? myFinalScore === opponentScore : false;
+                    const myFinishTime = me?.finishTime || Date.now();
+                    const opponentFinishTime = opponent?.finishTime || Date.now();
+
+                    // Tie breaker: higher score, then lower finish time
+                    let isWin = false;
+                    let isDraw = false;
+
+                    if (opponent) {
+                      if (myFinalScore > opponentScore) {
+                        isWin = true;
+                      } else if (myFinalScore < opponentScore) {
+                        isWin = false;
+                      } else {
+                        // Tied score -> Check finish time
+                        if (myFinishTime < opponentFinishTime) {
+                          isWin = true;
+                        } else if (myFinishTime > opponentFinishTime) {
+                          isWin = false;
+                        } else {
+                          isDraw = true;
+                        }
+                      }
+                    } else {
+                      isWin = true;
+                    }
 
                     return (
                       <>
@@ -1164,6 +1204,11 @@ export default function App() {
                         <h2 className="text-3xl font-bold text-white mb-2">
                           {isWin ? 'Chúc mừng bạn đã thắng!' : isDraw ? 'Kết quả Hòa!' : 'Tiếc quá, bạn đã thua cuộc!'}
                         </h2>
+                        {myFinalScore === opponentScore && opponent && !isDraw && (
+                          <p className="text-amber-400 text-sm mb-4 font-bold uppercase tracking-tight">
+                            {isWin ? 'Thắng nhờ hoàn thành sớm hơn!' : 'Thua do hoàn thành chậm hơn!'}
+                          </p>
+                        )}
                         
                         <div className="grid grid-cols-2 gap-4 my-8 max-w-sm mx-auto">
                            <div className={`p-4 rounded-2xl border ${isWin ? 'bg-green-600/10 border-green-500/30' : isDraw ? 'bg-blue-600/10 border-blue-500/30' : 'bg-slate-800 border-slate-700'}`}>

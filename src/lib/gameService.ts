@@ -60,6 +60,7 @@ export interface Player {
   ready: boolean;
   lastActive: any;
   hasFinished?: boolean;
+  finishTime?: number;
 }
 
 export interface GameRoom {
@@ -184,6 +185,7 @@ export const setPlayerFinished = async (roomId: string, userId: string) => {
   try {
     await updateDoc(roomRef, {
       [`players.${userId}.hasFinished`]: true,
+      [`players.${userId}.finishTime`]: Date.now(),
       [`players.${userId}.lastActive`]: Date.now()
     });
   } catch (err) {
