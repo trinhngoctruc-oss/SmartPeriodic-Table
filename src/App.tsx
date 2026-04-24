@@ -37,6 +37,12 @@ export default function App() {
   const [isAnswered, setIsAnswered] = useState(false);
   const [showResult, setShowResult] = useState(false);
 
+  const scoreRef = useRef(0);
+
+  useEffect(() => {
+    scoreRef.current = score;
+  }, [score]);
+
   const startQuiz = () => {
     const newQuiz = generateQuiz(elements, 15);
     setQuizQuestions(newQuiz);
@@ -65,7 +71,7 @@ export default function App() {
       setIsAnswered(false);
     } else {
       if (gameMode === 'multi' && room && user) {
-        setPlayerFinished(room.roomId, user.uid);
+        setPlayerFinished(room.roomId, user.uid, score);
       } else {
         setShowResult(true);
       }
@@ -106,6 +112,10 @@ export default function App() {
                 if (prev <= 1) {
                   clearInterval(timerRef.current!);
                   timerRef.current = null;
+                  // Critical: Submit final score before finishing
+                  if (user) {
+                    setPlayerFinished(roomData.roomId, user.uid, scoreRef.current);
+                  }
                   finishGame(roomData.roomId);
                   return 0;
                 }
@@ -1170,8 +1180,10 @@ export default function App() {
                     const myFinalScore = me?.score || 0; 
                     const opponentScore = opponent?.score || 0;
                     
-                    const myFinishTime = me?.finishTime || Date.now();
-                    const opponentFinishTime = opponent?.finishTime || Date.now();
+                    // Use a stable large number for missing finish times to reconcile tie-breaks consistently across clients
+                    const STABLE_MAX_TIME = 9999999999999;
+                    const myFinishTime = me?.finishTime || STABLE_MAX_TIME;
+                    const opponentFinishTime = opponent?.finishTime || STABLE_MAX_TIME;
 
                     // Tie breaker: higher score, then lower finish time
                     let isWin = false;

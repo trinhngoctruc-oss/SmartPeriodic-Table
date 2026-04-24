@@ -130,7 +130,7 @@ export const createRoom = async (creatorId: string, creatorName: string, questio
     },
     questions,
     startTime: null,
-    duration: 300, // 5 minutes
+    duration: 90, // 90 seconds
     createdAt: serverTimestamp()
   };
   try {
@@ -161,7 +161,8 @@ export const joinRoom = async (roomId: string, userId: string, userName: string)
         lastActive: Date.now()
       },
       status: 'playing', // Start immediately when 2nd joins
-      startTime: serverTimestamp()
+      startTime: serverTimestamp(),
+      duration: 90 // Ensure consistent duration
     });
   } catch (err) {
     handleFirestoreError(err, 'update', `rooms/${roomId}`);
@@ -180,11 +181,12 @@ export const updateScore = async (roomId: string, userId: string, newScore: numb
   }
 };
 
-export const setPlayerFinished = async (roomId: string, userId: string) => {
+export const setPlayerFinished = async (roomId: string, userId: string, finalScore: number) => {
   const roomRef = doc(db, 'rooms', roomId);
   try {
     await updateDoc(roomRef, {
       [`players.${userId}.hasFinished`]: true,
+      [`players.${userId}.score`]: finalScore,
       [`players.${userId}.finishTime`]: Date.now(),
       [`players.${userId}.lastActive`]: Date.now()
     });
