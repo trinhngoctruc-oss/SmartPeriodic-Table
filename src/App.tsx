@@ -1230,8 +1230,8 @@ export default function App() {
                     const me = players.find(p => p.userId === user?.uid);
                     const opponent = players.find(p => p.userId !== user?.uid);
                     
-                    // When finished, only trust synchronized Firestore scores for absolute parity
-                    const myFinalScore = me?.score ?? 0;
+                    // Final outcome score for local parity
+                    const myFinalScore = me?.score ?? score;
                     const opponentScore = opponent?.score ?? 0;
                     
                     const myName = me?.name || displayName || 'Bạn';
@@ -1240,9 +1240,6 @@ export default function App() {
                     const STABLE_MAX_TIME = 9999999999999;
                     const myFinishTime = me?.finishTime || STABLE_MAX_TIME;
                     const opponentFinishTime = opponent?.finishTime || STABLE_MAX_TIME;
-
-                    // If we're logically finished but opponent score is still 0 while they have finished, 
-                    // it might be a sync delay. We show it anyway, Firestore will trigger update.
 
                     let isWin = false;
                     let isDraw = false;
@@ -1253,6 +1250,7 @@ export default function App() {
                       } else if (myFinalScore < opponentScore) {
                         isWin = false;
                       } else {
+                        // Tied score -> check finish time
                         if (myFinishTime < opponentFinishTime) {
                           isWin = true;
                         } else if (myFinishTime > opponentFinishTime) {
@@ -1267,30 +1265,39 @@ export default function App() {
 
                     return (
                       <>
-                        <div className="w-24 h-24 bg-amber-500/20 rounded-full flex items-center justify-center mx-auto mb-6">
-                          {isWin ? <Trophy className="w-12 h-12 text-amber-500" /> : isDraw ? <CheckCircle2 className="w-12 h-12 text-blue-400" /> : <XCircle className="w-12 h-12 text-red-500" />}
+                        <div className={`w-24 h-24 rounded-full flex items-center justify-center mx-auto mb-6 border-4 ${isWin ? 'bg-amber-500/20 border-amber-500/50' : 'bg-red-500/20 border-red-500/50'}`}>
+                          {isWin ? (
+                            <Trophy className="w-12 h-12 text-amber-500" />
+                          ) : (
+                            <XCircle className="w-12 h-12 text-red-500" />
+                          )}
                         </div>
-                        <h2 className="text-3xl font-bold text-white mb-2">
+                        
+                        <h2 className={`text-4xl font-black mb-2 ${isWin ? 'text-amber-400' : 'text-red-400'}`}>
                           {isWin ? 'Chúc mừng bạn đã thắng!' : isDraw ? 'Kết quả Hòa!' : 'Tiếc quá, bạn đã thua cuộc!'}
                         </h2>
+                        
                         {opponent && myFinalScore === opponentScore && !isDraw && (
-                          <p className="text-amber-400 text-sm mb-4 font-bold uppercase tracking-tight">
-                            {isWin ? 'Thắng nhờ hoàn thành sớm hơn!' : 'Thua do hoàn thành chậm hơn!'}
-                          </p>
+                          <div className="inline-block px-4 py-1 bg-slate-800 rounded-full border border-slate-700 text-[10px] text-amber-500 font-black uppercase tracking-widest mb-4">
+                            {isWin ? 'Thắng nhờ hoàn thành sớm hơn' : 'Thua do hoàn thành chậm hơn'}
+                          </div>
                         )}
                         
-                        <div className="grid grid-cols-2 gap-4 my-8 max-w-sm mx-auto">
-                           <div className={`p-4 rounded-2xl border ${isWin ? 'bg-green-600/10 border-green-500/30 font-bold' : isDraw ? 'bg-blue-600/10 border-blue-500/30' : 'bg-slate-800 border-slate-700'}`}>
-                              <div className="text-[10px] uppercase text-slate-400 mb-1 font-bold truncate">{myName}</div>
-                              <div className={`text-4xl font-black ${isWin ? 'text-green-400' : 'text-white'}`}>{myFinalScore}</div>
-                              {isWin && <div className="text-[10px] text-green-500 font-bold mt-1">HẠNG 1</div>}
-                              {!isWin && !isDraw && <div className="text-[10px] text-slate-500 font-bold mt-1 text-center">HẠNG 2</div>}
+                        <div className="grid grid-cols-2 gap-6 my-10 max-w-sm mx-auto">
+                           <div className={`relative p-6 rounded-3xl border-2 shadow-xl ${isWin ? 'bg-amber-500/10 border-amber-500/40' : 'bg-slate-800/80 border-slate-700'}`}>
+                              {isWin && <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-1 bg-amber-500 text-white text-[10px] font-black rounded-full">Hạng 1</div>}
+                              {!isWin && !isDraw && <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-1 bg-slate-700 text-slate-400 text-[10px] font-black rounded-full">Hạng 2</div>}
+                              
+                              <div className="text-xs uppercase text-slate-400 mb-2 font-black truncate tracking-tighter">{myName}</div>
+                              <div className={`text-5xl font-black ${isWin ? 'text-amber-400' : 'text-white'}`}>{myFinalScore}</div>
                            </div>
-                           <div className={`p-4 rounded-2xl border ${!isWin && !isDraw ? 'bg-green-600/10 border-green-500/30 font-bold' : 'bg-slate-800 border-slate-700'}`}>
-                              <div className="text-[10px] uppercase text-slate-400 mb-1 font-bold truncate">{opponentName}</div>
-                              <div className={`text-4xl font-black ${!isWin && !isDraw ? 'text-green-400' : 'text-slate-200'}`}>{opponentScore}</div>
-                              {!isWin && !isDraw && <div className="text-[10px] text-green-500 font-bold mt-1">HẠNG 1</div>}
-                              {(isWin || isDraw) && <div className="text-[10px] text-slate-500 font-bold mt-1 text-center">HẠNG 2</div>}
+                           
+                           <div className={`relative p-6 rounded-3xl border-2 shadow-xl ${!isWin && !isDraw ? 'bg-amber-500/10 border-amber-500/40' : 'bg-slate-800/80 border-slate-700'}`}>
+                              {!isWin && !isDraw && <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-1 bg-amber-500 text-white text-[10px] font-black rounded-full">Hạng 1</div>}
+                              {(isWin || isDraw) && <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-1 bg-slate-700 text-slate-400 text-[10px] font-black rounded-full">Hạng 2</div>}
+                              
+                              <div className="text-xs uppercase text-slate-400 mb-2 font-black truncate tracking-tighter">{opponentName}</div>
+                              <div className={`text-5xl font-black ${!isWin && !isDraw ? 'text-amber-400' : 'text-slate-200'}`}>{opponentScore}</div>
                            </div>
                         </div>
                       </>
