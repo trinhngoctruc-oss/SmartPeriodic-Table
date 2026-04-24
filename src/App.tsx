@@ -27,6 +27,7 @@ export default function App() {
   const [timeLeft, setTimeLeft] = useState(0);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
   const [nameInput, setNameInput] = useState('');
+  const prevStatusRef = useRef<string | null>(null);
 
   // Quiz State
   const [isQuizOpen, setIsQuizOpen] = useState(false);
@@ -95,15 +96,27 @@ export default function App() {
 
           // Sync quiz questions
           if (roomData.questions) {
-            setQuizQuestions(prev => (prev.length === 0 ? roomData.questions : prev));
+            // Check if questions are actually different (important for new games in same room)
+            const questionsChanged = JSON.stringify(roomData.questions) !== JSON.stringify(quizQuestions);
+            if (questionsChanged) {
+              setQuizQuestions(roomData.questions);
+            }
           }
 
-          // Auto-finish logic: transitioned to finished if both players are done
+          // Reset local state if we transitioned from waiting/finished to playing
+          if (roomData.status === 'playing' && prevStatusRef.current !== 'playing') {
+            resetGameState();
+          }
+          
+          // Auto-finish logic: transitioned to finished if both players are done or hard timeout reached
           const players = Object.values(roomData.players) as Player[];
           const allFinished = players.length >= 2 && players.every(p => p.hasFinished);
+          
+          const startTime = (roomData.startTime as any)?.toMillis?.() || (typeof roomData.startTime === 'number' ? roomData.startTime : Date.now());
+          const isHardTimedOut = Date.now() > (startTime + (roomData.duration + 5) * 1000); // 5s grace period
 
-          if (roomData.status === 'playing' && allFinished) {
-            // Both finished, can show results immediately locally
+          if (roomData.status === 'playing' && (allFinished || isHardTimedOut)) {
+            // Both finished or hard timeout, can show results immediately locally
             setShowResult(true);
             // Host also updates the global status
             if (roomData.hostId === user?.uid) {
@@ -114,6 +127,8 @@ export default function App() {
           if (roomData.status === 'finished') {
             setShowResult(true);
           }
+          
+          prevStatusRef.current = roomData.status;
         }
       }, (err) => {
         console.error("Room Snapshot Error:", err);
@@ -170,8 +185,8 @@ export default function App() {
           if (user && room.roomId) {
             setPlayerFinished(room.roomId, user.uid, scoreRef.current).catch(console.error);
           }
-          // Locally show results even if Firestore update is pending
-          setShowResult(true);
+          // In multi-player, we wait for the onSnapshot auto-finish logic 
+          // to trigger setShowResult(true) for everyone simultaneously
         }
       }, 1000);
 
@@ -1087,8 +1102,25 @@ export default function App() {
                       <div className="p-2 bg-amber-500 rounded-lg">
                         <Trophy className="w-5 h-5 text-white" />
                       </div>
-                      <span className="font-bold text-slate-300">Câu {currentQuestionIndex + 1} / 15</span>
+                      <div className="flex flex-col">
+                        <span className="text-[10px] text-slate-500 font-bold uppercase tracking-tight">Thử thách</span>
+                        <span className="text-sm font-bold text-slate-300">Câu {currentQuestionIndex + 1} / 15</span>
+                      </div>
                     </div>
+
+                    {gameMode === 'multi' && (
+                      <div className="hidden sm:flex items-center gap-3 px-4 py-2 bg-slate-800 rounded-2xl border border-slate-700">
+                        <Users className="w-4 h-4 text-blue-400" />
+                        <span className="text-xs font-bold text-slate-300">
+                          {(() => {
+                            const playersArr = Object.values(room?.players || {});
+                            const me = playersArr.find(p => p.userId === user?.uid);
+                            const opponent = playersArr.find(p => p.userId !== user?.uid);
+                            return `${me?.name || 'Bạn'} vs ${opponent?.name || '...'}`;
+                          })()}
+                        </span>
+                      </div>
+                    )}
                     {gameMode === 'multi' && (
                       <div className="flex items-center gap-4 bg-slate-800/80 px-4 py-2 rounded-xl border border-slate-700">
                          <Loader2 className="w-4 h-4 text-blue-400 animate-spin" />
@@ -1198,8 +1230,8 @@ export default function App() {
                     const me = players.find(p => p.userId === user?.uid);
                     const opponent = players.find(p => p.userId !== user?.uid);
                     
-                    // Priority: Local score for 'me' for absolute speed, but room score is source of truth
-                    const myFinalScore = me?.score ?? score; 
+                    // When finished, only trust synchronized Firestore scores for absolute parity
+                    const myFinalScore = me?.score ?? 0;
                     const opponentScore = opponent?.score ?? 0;
                     
                     const myName = me?.name || displayName || 'Bạn';

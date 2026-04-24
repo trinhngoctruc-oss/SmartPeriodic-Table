@@ -125,6 +125,7 @@ export const createRoom = async (creatorId: string, creatorName: string, questio
         name: creatorName,
         score: 0,
         ready: true,
+        hasFinished: false,
         lastActive: Date.now()
       }
     },
@@ -158,6 +159,7 @@ export const joinRoom = async (roomId: string, userId: string, userName: string)
         name: userName,
         score: 0,
         ready: true,
+        hasFinished: false,
         lastActive: Date.now()
       },
       status: 'playing', // Start immediately when 2nd joins
