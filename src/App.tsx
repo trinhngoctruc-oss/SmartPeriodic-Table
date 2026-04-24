@@ -36,12 +36,9 @@ export default function App() {
   const [selectedAnswer, setSelectedAnswer] = useState<string | null>(null);
   const [isAnswered, setIsAnswered] = useState(false);
   const [showResult, setShowResult] = useState(false);
-
   const scoreRef = useRef(0);
 
-  useEffect(() => {
-    scoreRef.current = score;
-  }, [score]);
+  // Removed redundant scoreRef sync useEffect as it's now updated directly in handleAnswerSelect
 
   const startQuiz = () => {
     const newQuiz = generateQuiz(elements, 15);
@@ -59,7 +56,11 @@ export default function App() {
     setSelectedAnswer(answer);
     setIsAnswered(true);
     if (answer === quizQuestions[currentQuestionIndex].correctAnswer) {
-      setScore(prev => prev + 1);
+      setScore(prev => {
+        const newScore = prev + 1;
+        scoreRef.current = newScore;
+        return newScore;
+      });
     }
   };
 
@@ -71,7 +72,7 @@ export default function App() {
       setIsAnswered(false);
     } else {
       if (gameMode === 'multi' && room && user) {
-        setPlayerFinished(room.roomId, user.uid, score);
+        setPlayerFinished(room.roomId, user.uid, scoreRef.current).catch(console.error);
       } else {
         setShowResult(true);
       }
@@ -90,54 +91,28 @@ export default function App() {
       unsub = onSnapshot(doc(db, 'rooms', roomCode), (snap) => {
         if (snap.exists()) {
           const roomData = snap.data() as GameRoom;
-          console.log("Room Update:", roomData.status, Object.keys(roomData.players).length);
           setRoom(roomData);
 
-          // Crucial: Sync quiz questions if they aren't loaded yet (e.g., on refresh)
+          // Sync quiz questions
           if (roomData.questions) {
             setQuizQuestions(prev => (prev.length === 0 ? roomData.questions : prev));
           }
 
-          // Add a minor delay for startTime sync to avoid negative elapsed time
-          if (roomData.status === 'playing' && roomData.startTime && !timerRef.current) {
-            const now = Date.now();
-            const startMillis = (roomData.startTime as any).toMillis?.() || Date.now();
-              
-            const elapsed = Math.max(0, Math.floor((now - startMillis) / 1000));
-            const remaining = Math.max(0, roomData.duration - elapsed);
-            setTimeLeft(remaining);
-            
-            timerRef.current = setInterval(() => {
-              setTimeLeft(prev => {
-                if (prev <= 1) {
-                  clearInterval(timerRef.current!);
-                  timerRef.current = null;
-                  // Critical: Submit final score before finishing
-                  if (user) {
-                    setPlayerFinished(roomData.roomId, user.uid, scoreRef.current);
-                  }
-                  finishGame(roomData.roomId);
-                  return 0;
-                }
-                return prev - 1;
-              });
-            }, 1000);
-          }
+          // Auto-finish logic: transitioned to finished if both players are done
+          const players = Object.values(roomData.players) as Player[];
+          const allFinished = players.length >= 2 && players.every(p => p.hasFinished);
 
-          // Transition to finished if both players are done
-          if (roomData.status === 'playing' && Object.keys(roomData.players).length === 2) {
-            const players = Object.values(roomData.players);
-            if (players.every(p => p.hasFinished)) {
+          if (roomData.status === 'playing' && allFinished) {
+            // Both finished, can show results immediately locally
+            setShowResult(true);
+            // Host also updates the global status
+            if (roomData.hostId === user?.uid) {
               finishGame(roomData.roomId);
             }
           }
 
           if (roomData.status === 'finished') {
             setShowResult(true);
-            if (timerRef.current) {
-              clearInterval(timerRef.current);
-              timerRef.current = null;
-            }
           }
         }
       }, (err) => {
@@ -158,10 +133,57 @@ export default function App() {
     };
   }, [roomCode, gameMode]);
 
+  // Single-player Timer Effect
+  useEffect(() => {
+    if (gameMode === 'single' && isQuizOpen && !showResult) {
+      const startTime = Date.now();
+      const duration = 90;
+      setTimeLeft(duration);
+      
+      const interval = setInterval(() => {
+        const elapsed = Math.floor((Date.now() - startTime) / 1000);
+        const remaining = Math.max(0, duration - elapsed);
+        setTimeLeft(remaining);
+        if (remaining <= 0) {
+          setShowResult(true);
+          clearInterval(interval);
+        }
+      }, 1000);
+      return () => clearInterval(interval);
+    }
+  }, [gameMode, isQuizOpen, showResult]);
+
+  // Multi-player Timer Sync Effect
+  useEffect(() => {
+    if (gameMode === 'multi' && room?.status === 'playing' && room.startTime) {
+      const startMillis = (room.startTime as any).toMillis?.() || (typeof room.startTime === 'number' ? room.startTime : Date.now());
+      
+      const interval = setInterval(() => {
+        const now = Date.now();
+        const elapsed = Math.floor((now - startMillis) / 1000);
+        const remaining = Math.max(0, room.duration - elapsed);
+        
+        setTimeLeft(remaining);
+
+        if (remaining <= 0 && !showResult) {
+          // Time is up
+          if (user && room.roomId) {
+            setPlayerFinished(room.roomId, user.uid, scoreRef.current).catch(console.error);
+          }
+          // Locally show results even if Firestore update is pending
+          setShowResult(true);
+        }
+      }, 1000);
+
+      return () => clearInterval(interval);
+    }
+  }, [gameMode, room?.status, room?.startTime, room?.duration, user?.uid, showResult, room?.roomId]);
+
   const resetGameState = () => {
     console.log("Resetting Game State...");
     setCurrentQuestionIndex(0);
     setScore(0);
+    scoreRef.current = 0;
     setTimeLeft(90);
     setIsAnswered(false);
     setSelectedAnswer(null);
@@ -1176,16 +1198,20 @@ export default function App() {
                     const me = players.find(p => p.userId === user?.uid);
                     const opponent = players.find(p => p.userId !== user?.uid);
                     
-                    // Use Firestore values for both to ensure perfect consistency between clients
-                    const myFinalScore = me?.score || 0; 
-                    const opponentScore = opponent?.score || 0;
+                    // Priority: Local score for 'me' for absolute speed, but room score is source of truth
+                    const myFinalScore = me?.score ?? score; 
+                    const opponentScore = opponent?.score ?? 0;
                     
-                    // Use a stable large number for missing finish times to reconcile tie-breaks consistently across clients
+                    const myName = me?.name || displayName || 'Bạn';
+                    const opponentName = opponent?.name || 'Đối thủ';
+                    
                     const STABLE_MAX_TIME = 9999999999999;
                     const myFinishTime = me?.finishTime || STABLE_MAX_TIME;
                     const opponentFinishTime = opponent?.finishTime || STABLE_MAX_TIME;
 
-                    // Tie breaker: higher score, then lower finish time
+                    // If we're logically finished but opponent score is still 0 while they have finished, 
+                    // it might be a sync delay. We show it anyway, Firestore will trigger update.
+
                     let isWin = false;
                     let isDraw = false;
 
@@ -1195,7 +1221,6 @@ export default function App() {
                       } else if (myFinalScore < opponentScore) {
                         isWin = false;
                       } else {
-                        // Tied score -> Check finish time
                         if (myFinishTime < opponentFinishTime) {
                           isWin = true;
                         } else if (myFinishTime > opponentFinishTime) {
@@ -1216,22 +1241,24 @@ export default function App() {
                         <h2 className="text-3xl font-bold text-white mb-2">
                           {isWin ? 'Chúc mừng bạn đã thắng!' : isDraw ? 'Kết quả Hòa!' : 'Tiếc quá, bạn đã thua cuộc!'}
                         </h2>
-                        {myFinalScore === opponentScore && opponent && !isDraw && (
+                        {opponent && myFinalScore === opponentScore && !isDraw && (
                           <p className="text-amber-400 text-sm mb-4 font-bold uppercase tracking-tight">
                             {isWin ? 'Thắng nhờ hoàn thành sớm hơn!' : 'Thua do hoàn thành chậm hơn!'}
                           </p>
                         )}
                         
                         <div className="grid grid-cols-2 gap-4 my-8 max-w-sm mx-auto">
-                           <div className={`p-4 rounded-2xl border ${isWin ? 'bg-green-600/10 border-green-500/30' : isDraw ? 'bg-blue-600/10 border-blue-500/30' : 'bg-slate-800 border-slate-700'}`}>
-                              <div className="text-[10px] uppercase text-slate-400 mb-1 font-bold truncate">{me?.name || 'Bạn'}</div>
+                           <div className={`p-4 rounded-2xl border ${isWin ? 'bg-green-600/10 border-green-500/30 font-bold' : isDraw ? 'bg-blue-600/10 border-blue-500/30' : 'bg-slate-800 border-slate-700'}`}>
+                              <div className="text-[10px] uppercase text-slate-400 mb-1 font-bold truncate">{myName}</div>
                               <div className={`text-4xl font-black ${isWin ? 'text-green-400' : 'text-white'}`}>{myFinalScore}</div>
-                              {isWin && <div className="text-[10px] text-green-500 font-bold mt-1">CHIẾN THẮNG</div>}
+                              {isWin && <div className="text-[10px] text-green-500 font-bold mt-1">HẠNG 1</div>}
+                              {!isWin && !isDraw && <div className="text-[10px] text-slate-500 font-bold mt-1 text-center">HẠNG 2</div>}
                            </div>
-                           <div className={`p-4 rounded-2xl border ${!isWin && !isDraw ? 'bg-green-600/10 border-green-500/30' : 'bg-slate-800 border-slate-700'}`}>
-                              <div className="text-[10px] uppercase text-slate-400 mb-1 font-bold truncate">{opponent?.name || 'Đối thủ'}</div>
+                           <div className={`p-4 rounded-2xl border ${!isWin && !isDraw ? 'bg-green-600/10 border-green-500/30 font-bold' : 'bg-slate-800 border-slate-700'}`}>
+                              <div className="text-[10px] uppercase text-slate-400 mb-1 font-bold truncate">{opponentName}</div>
                               <div className={`text-4xl font-black ${!isWin && !isDraw ? 'text-green-400' : 'text-slate-200'}`}>{opponentScore}</div>
-                              {!isWin && !isDraw && <div className="text-[10px] text-green-500 font-bold mt-1">CHIẾN THẮNG</div>}
+                              {!isWin && !isDraw && <div className="text-[10px] text-green-500 font-bold mt-1">HẠNG 1</div>}
+                              {(isWin || isDraw) && <div className="text-[10px] text-slate-500 font-bold mt-1 text-center">HẠNG 2</div>}
                            </div>
                         </div>
                       </>
