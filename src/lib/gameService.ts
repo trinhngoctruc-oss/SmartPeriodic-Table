@@ -130,7 +130,7 @@ export const createRoom = async (creatorId: string, creatorName: string, questio
     },
     questions,
     startTime: null,
-    duration: 90, // 90 seconds
+    duration: 300, // 300 seconds (5 minutes)
     createdAt: serverTimestamp()
   };
   try {
@@ -162,7 +162,7 @@ export const joinRoom = async (roomId: string, userId: string, userName: string)
       },
       status: 'playing', // Start immediately when 2nd joins
       startTime: serverTimestamp(),
-      duration: 90 // Ensure consistent duration
+      duration: 300 // Ensure consistent duration
     });
   } catch (err) {
     handleFirestoreError(err, 'update', `rooms/${roomId}`);
@@ -195,12 +195,21 @@ export const setPlayerFinished = async (roomId: string, userId: string, finalSco
   }
 };
 
-export const startGame = async (roomId: string) => {
+export const startGame = async (roomId: string, players: Record<string, Player>) => {
   const roomRef = doc(db, 'rooms', roomId);
+  const resetPlayers: Record<string, any> = {};
+  
+  Object.keys(players).forEach(uid => {
+    resetPlayers[`players.${uid}.score`] = 0;
+    resetPlayers[`players.${uid}.hasFinished`] = false;
+    resetPlayers[`players.${uid}.finishTime`] = 0;
+  });
+
   try {
     await updateDoc(roomRef, { 
       status: 'playing',
-      startTime: serverTimestamp() 
+      startTime: serverTimestamp(),
+      ...resetPlayers
     });
   } catch (err) {
     handleFirestoreError(err, 'update', `rooms/${roomId}`);

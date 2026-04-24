@@ -137,7 +137,7 @@ export default function App() {
   useEffect(() => {
     if (gameMode === 'single' && isQuizOpen && !showResult) {
       const startTime = Date.now();
-      const duration = 90;
+      const duration = 300;
       setTimeLeft(duration);
       
       const interval = setInterval(() => {
@@ -184,7 +184,7 @@ export default function App() {
     setCurrentQuestionIndex(0);
     setScore(0);
     scoreRef.current = 0;
-    setTimeLeft(90);
+    setTimeLeft(300);
     setIsAnswered(false);
     setSelectedAnswer(null);
     setShowResult(false);
@@ -1061,7 +1061,7 @@ export default function App() {
                     
                     return isHost && (
                       <button 
-                        onClick={() => startGame(room.roomId)}
+                        onClick={() => startGame(room.roomId, room.players)}
                         className="w-full py-4 bg-green-600 hover:bg-green-500 text-white rounded-2xl font-black text-xl shadow-xl shadow-green-900/20 mb-6 transition-all transform hover:scale-[1.02]"
                       >
                         BẮT ĐẦU NGAY
