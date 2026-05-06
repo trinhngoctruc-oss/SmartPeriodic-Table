@@ -45,7 +45,7 @@ export const generateQuiz = (elements: Element[], count: number = 15): Question[
         getWrong: () => first20.filter(e => e.number !== el.number).sort(() => 0.5 - Math.random()).slice(0, 3).map(e => e.symbol)
       },
       {
-        text: `Nguyên tố nào có số hiệu nguyên tử (số proton) là ${el.number}?`,
+        text: `Nguyên tố nào có số hiệu nguyên tử là ${el.number}?`,
         correct: el.name,
         getWrong: () => first20.filter(e => e.number !== el.number).sort(() => 0.5 - Math.random()).slice(0, 3).map(e => e.name)
       },
@@ -56,30 +56,8 @@ export const generateQuiz = (elements: Element[], count: number = 15): Question[
           const groups = [1, 2, 13, 14, 15, 16, 17, 18].filter(g => g !== el.group);
           return groups.sort(() => 0.5 - Math.random()).slice(0, 3).map(g => `Nhóm ${groupRomanMapping[g]}`);
         }
-      },
-      {
-        text: `Nguyên tố nào có cấu hình electron là "${formattedConfig}"?`,
-        correct: el.name,
-        getWrong: () => first20.filter(e => e.number !== el.number).sort(() => 0.5 - Math.random()).slice(0, 3).map(e => e.name)
-      },
-      {
-        text: `Cấu hình electron của nguyên tố "${el.name}" là gì?`,
-        correct: formattedConfig,
-        getWrong: () => first20.filter(e => e.number !== el.number).sort(() => 0.5 - Math.random()).slice(0, 3).map(e => formatElectronConfig(e.electronConfiguration))
-      },
-      {
-        text: `Nguyên tố nào có tính chất đặc trưng là: "${el.characteristics}"?`,
-        correct: el.name,
-        getWrong: () => first20.filter(e => e.number !== el.number).sort(() => 0.5 - Math.random()).slice(0, 3).map(e => e.name),
-        // Filter out if it's a generic "Khí không màu" description
-        disabled: el.characteristics.toLowerCase().includes('khí không màu')
-      },
-      {
-        text: `Khối lượng nguyên tử của nguyên tố "${el.name}" xấp xỉ bao nhiêu?`,
-        correct: `${el.atomicMass} u`,
-        getWrong: () => first20.filter(e => e.number !== el.number).sort(() => 0.5 - Math.random()).slice(0, 3).map(e => `${e.atomicMass} u`)
       }
-    ].filter(q => !('disabled' in q && q.disabled));
+    ];
 
     const qType = questionTypes[Math.floor(Math.random() * questionTypes.length)];
     const options = [qType.correct, ...qType.getWrong()].sort(() => 0.5 - Math.random());

@@ -386,16 +386,17 @@ for (let i = 1; i <= 118; i++) {
   let isRadioactive = false;
 
   // Category Logic
-  if (i === 1) cat = "hydrogen";
+  if (i === 1) cat = "nonmetal"; // Hydrogen is a nonmetal
   else if (g === 1 && p > 1) cat = "alkali-metal";
   else if (g === 2) cat = "alkaline-earth";
   else if (i >= 57 && i <= 71) cat = "lanthanide";
   else if (i >= 89 && i <= 103) cat = "actinide";
   else if (g >= 3 && g <= 12) cat = "transition-metal";
   else if (g === 18) cat = "noble-gas";
+  else if ([7, 8, 9, 17].includes(i)) cat = "halogen"; // N, O, F, Cl are requested to be green (Halogen/Reactive nonmetal color)
+  else if ([5, 14, 33, 52].includes(i)) cat = "nonmetal"; // Boron, Silicon, Arsenic, Tellurium merged to nonmetals (yellow)
+  else if ([6, 15, 16, 34].includes(i)) cat = "nonmetal";
   else if (g === 17) cat = "halogen";
-  else if ([5, 14, 33, 52].includes(i)) cat = "metalloid";
-  else if ([6, 7, 8, 15, 16, 34].includes(i)) cat = "nonmetal";
   else if ([13, 31, 32, 49, 50, 51, 81, 82, 83, 84].includes(i)) cat = "post-transition-metal";
 
   // Block Logic
@@ -447,20 +448,34 @@ for (let i = 1; i <= 118; i++) {
   });
 }
 
+export const categoryColors: Record<string, string> = {
+  "metal": "#90CAF9",
+  "nonmetal": "#A5D6A7", // Updated to Green as requested
+  "hydrogen": "#A5D6A7", // Updated to Green as requested
+  "alkali-metal": "#EF9A9A",
+  "alkaline-earth": "#FFCC80",
+  "transition-metal": "#90CAF9",
+  "post-transition-metal": "#CE93D8",
+  "metalloid": "#80CBC4",
+  "halogen": "#A5D6A7", // Nonmetals like N, O, F, Cl are green
+  "noble-gas": "#FFF176", // Noble gases to yellow
+  "lanthanide": "#80DEEA",
+  "actinide": "#C5E1A5"
+};
+
 elements.forEach(e => {
-  switch (e.category) {
-    case "hydrogen": e.color = "#FFF59D"; break; // Soft Yellow
-    case "alkali-metal": e.color = "#EF9A9A"; break; // Soft Red
-    case "alkaline-earth": e.color = "#FFCC80"; break; // Soft Orange
-    case "transition-metal": e.color = "#90CAF9"; break; // Soft Blue
-    case "post-transition-metal": e.color = "#CE93D8"; break; // Soft Purple
-    case "metalloid": e.color = "#80CBC4"; break; // Soft Teal
-    case "nonmetal": e.color = "#FFF59D"; break; // Soft Yellow
-    case "halogen": e.color = "#A5D6A7"; break; // Soft Green
-    case "noble-gas": e.color = "#F48FB1"; break; // Soft Pink
-    case "lanthanide": e.color = "#80DEEA"; break; // Soft Cyan
-    case "actinide": e.color = "#C5E1A5"; break; // Soft Lime
+  const categoryColor = categoryColors[e.category] || "#E2E8F0";
+  
+  // If it's a gas, mix the category color with semi-transparent white 
+  // to represent "colorless" but still show the category hint
+  if (e.state === "Khí") {
+    e.color = categoryColor; 
+    // We can use a slightly alternative style in CSS if needed, 
+    // but for now we'll stick to category colors to keep unification.
+    return;
   }
+
+  e.color = categoryColor;
 });
 
 export const blockColors: Record<string, string> = {

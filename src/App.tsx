@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Volume2, X, Info, Beaker, GraduationCap, PlayCircle, Trophy, Gamepad2, ArrowRight, CheckCircle2, XCircle, RotateCcw, LayoutGrid, Search, Users, Copy, Loader2, UserCircle2 } from 'lucide-react';
-import { elements, categories, Element, blockColors } from './data';
+import { elements, categories, Element, blockColors, categoryColors } from './data';
 import { generateQuiz, Question } from './quizService';
 import { useAuth, registerUser, createRoom, joinRoom, updateScore, finishGame, startGame, GameRoom, Player, setPlayerFinished } from './lib/gameService';
 import { doc, onSnapshot, getDoc } from 'firebase/firestore';
@@ -510,7 +510,7 @@ export default function App() {
           </div>
           <input
             type="text"
-            placeholder="Tìm kiếm theo tên, ký hiệu hoặc số nguyên tử..."
+            placeholder="Tìm kiếm theo tên, ký hiệu hoặc số hiệu nguyên tử..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="w-full bg-slate-800/50 border border-slate-700 rounded-2xl py-4 pl-12 pr-12 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 transition-all placeholder:text-slate-500 text-slate-100 backdrop-blur-sm shadow-lg"
@@ -528,9 +528,7 @@ export default function App() {
         {/* Legend */}
         <div className="mb-8 flex flex-wrap gap-2 justify-center max-w-5xl mx-auto p-4 bg-slate-800/20 rounded-3xl border border-slate-700/50 backdrop-blur-sm">
           {Object.entries(categories).map(([key, label]) => {
-            let color = elements.find(e => e.category === key)?.color || blockColors[key] || '#334155';
-            if (key === 'metal') color = '#90CAF9'; // Representative metal color (soft blue)
-            if (key === 'nonmetal') color = '#FFF59D'; // Representative nonmetal color (soft yellow)
+            const color = categoryColors[key] || blockColors[key] || '#334155';
             const isActive = activeCategory === key;
             return (
               <button
