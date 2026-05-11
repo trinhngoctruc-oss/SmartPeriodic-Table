@@ -393,11 +393,11 @@ for (let i = 1; i <= 118; i++) {
   else if (i >= 89 && i <= 103) cat = "actinide";
   else if (g >= 3 && g <= 12) cat = "transition-metal";
   else if (g === 18) cat = "noble-gas";
-  else if ([7, 8, 9, 17].includes(i)) cat = "halogen"; // N, O, F, Cl are requested to be green (Halogen/Reactive nonmetal color)
-  else if ([5, 14, 33, 52].includes(i)) cat = "nonmetal"; // Boron, Silicon, Arsenic, Tellurium merged to nonmetals (yellow)
+  else if ([7, 8, 9, 17].includes(i)) cat = "halogen"; // Reactive nonmetals
+  else if ([5, 14, 33, 52].includes(i)) cat = "nonmetal"; 
   else if ([6, 15, 16, 34].includes(i)) cat = "nonmetal";
-  else if (g === 17) cat = "halogen";
-  else if ([13, 31, 32, 49, 50, 51, 81, 82, 83, 84].includes(i)) cat = "post-transition-metal";
+  else if (g === 17 && i !== 117) cat = "halogen"; // Halogens except Ts
+  else if ([13, 31, 32, 49, 50, 51, 81, 82, 83, 84, 117].includes(i)) cat = "post-transition-metal"; // Added 117 (Ts) as metal
 
   // Block Logic
   if (g <= 2 || i === 2) block = "block-s";
@@ -450,17 +450,17 @@ for (let i = 1; i <= 118; i++) {
 
 export const categoryColors: Record<string, string> = {
   "metal": "#90CAF9",
-  "nonmetal": "#A5D6A7", // Updated to Green as requested
-  "hydrogen": "#A5D6A7", // Updated to Green as requested
-  "alkali-metal": "#EF9A9A",
-  "alkaline-earth": "#FFCC80",
+  "nonmetal": "#F48FB1",
+  "noble-gas": "#FFF176",
+  "hydrogen": "#F48FB1",
+  "alkali-metal": "#90CAF9",
+  "alkaline-earth": "#90CAF9",
   "transition-metal": "#90CAF9",
-  "post-transition-metal": "#CE93D8",
-  "metalloid": "#80CBC4",
-  "halogen": "#A5D6A7", // Nonmetals like N, O, F, Cl are green
-  "noble-gas": "#FFF176", // Noble gases to yellow
-  "lanthanide": "#80DEEA",
-  "actinide": "#C5E1A5"
+  "post-transition-metal": "#90CAF9",
+  "metalloid": "#F48FB1",
+  "halogen": "#F48FB1",
+  "lanthanide": "#90CAF9",
+  "actinide": "#90CAF9"
 };
 
 elements.forEach(e => {
